@@ -74,8 +74,166 @@ function PaymentSuccessContent() {
       null
     );
 
+  const [
+    paidDiagnosis,
+    setPaidDiagnosis,
+  ] =
+    useState<Diagnosis | null>(
+      null
+    );
+
+  const [
+    isAnalysisRetrying,
+    setIsAnalysisRetrying,
+  ] =
+    useState(false);
+
+  const [
+    analysisFailedAfterPayment,
+    setAnalysisFailedAfterPayment,
+  ] =
+    useState(false);
+
   const startedRef =
     useRef(false);
+
+  async function runAnalysis(
+    diagnosis: Diagnosis,
+    orderId: string
+  ) {
+    const cachedResultKey =
+      `whyunsold:result:${orderId}`;
+
+    const analysisResponse =
+      await fetch(
+        "/api/analysis",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body:
+            JSON.stringify({
+              diagnosis,
+            }),
+          cache:
+            "no-store",
+        }
+      );
+
+    const analysisData =
+      (await analysisResponse.json()) as AnalysisResponse;
+
+    if (
+      !analysisResponse.ok ||
+      !analysisData.analysis
+    ) {
+      throw new Error(
+        analysisData.detail ||
+          analysisData.error ||
+          "결제는 완료됐지만 분석 리포트 생성에 실패했습니다."
+      );
+    }
+
+    const finalResult: Diagnosis =
+      {
+        ...diagnosis,
+        aiDetailAnalysis:
+          analysisData.analysis,
+      };
+
+    sessionStorage.setItem(
+      cachedResultKey,
+      JSON.stringify(
+        finalResult
+      )
+    );
+
+    sessionStorage.removeItem(
+      `whyunsold:order:${orderId}`
+    );
+
+    setResult(
+      finalResult
+    );
+
+    setStatus(
+      "success"
+    );
+
+    setMessage(
+      "결제가 완료되었습니다."
+    );
+
+    setAnalysisFailedAfterPayment(
+      false
+    );
+  }
+
+  async function retryAnalysis() {
+    if (
+      !paidDiagnosis ||
+      isAnalysisRetrying
+    ) {
+      return;
+    }
+
+    const searchParams =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const orderId =
+      searchParams.get(
+        "orderId"
+      );
+
+    if (!orderId) {
+      setMessage(
+        "주문번호를 확인할 수 없습니다."
+      );
+      return;
+    }
+
+    setIsAnalysisRetrying(
+      true
+    );
+    setStatus(
+      "loading"
+    );
+    setMessage(
+      "결제는 완료되었습니다. 매도 분석 리포트를 다시 생성하고 있습니다."
+    );
+
+    try {
+      await runAnalysis(
+        paidDiagnosis,
+        orderId
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "리포트 생성 중 오류가 발생했습니다.";
+
+      setStatus(
+        "error"
+      );
+
+      setMessage(
+        errorMessage
+      );
+
+      setAnalysisFailedAfterPayment(
+        true
+      );
+    } finally {
+      setIsAnalysisRetrying(
+        false
+      );
+    }
+  }
 
   useEffect(() => {
     if (startedRef.current) {
@@ -247,72 +405,39 @@ function PaymentSuccessContent() {
             null
         );
 
+        setPaidDiagnosis(
+          storedOrder.diagnosis
+        );
+
         setMessage(
           "결제가 완료되었습니다. 매도 분석 리포트를 생성하고 있습니다."
         );
 
-        const analysisResponse =
-          await fetch(
-            "/api/analysis",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-              body:
-                JSON.stringify({
-                  diagnosis:
-                    storedOrder.diagnosis,
-                }),
-              cache:
-                "no-store",
-            }
+        try {
+          await runAnalysis(
+            storedOrder.diagnosis,
+            orderId
+          );
+        } catch (analysisError) {
+          const analysisMessage =
+            analysisError instanceof Error
+              ? analysisError.message
+              : "결제는 완료됐지만 분석 리포트 생성에 실패했습니다.";
+
+          setStatus(
+            "error"
           );
 
-        const analysisData =
-          (await analysisResponse.json()) as AnalysisResponse;
-
-        if (
-          !analysisResponse.ok ||
-          !analysisData.analysis
-        ) {
-          throw new Error(
-            analysisData.detail ||
-              analysisData.error ||
-              "결제는 완료됐지만 분석 리포트 생성에 실패했습니다."
+          setMessage(
+            analysisMessage
           );
+
+          setAnalysisFailedAfterPayment(
+            true
+          );
+
+          return;
         }
-
-        const finalResult: Diagnosis =
-          {
-            ...storedOrder.diagnosis,
-            aiDetailAnalysis:
-              analysisData.analysis,
-          };
-
-        sessionStorage.setItem(
-          cachedResultKey,
-          JSON.stringify(
-            finalResult
-          )
-        );
-
-        sessionStorage.removeItem(
-          storageKey
-        );
-
-        setResult(
-          finalResult
-        );
-
-        setStatus(
-          "success"
-        );
-
-        setMessage(
-          "결제가 완료되었습니다."
-        );
       } catch (error) {
         const errorMessage =
           error instanceof Error
@@ -378,7 +503,7 @@ function PaymentSuccessContent() {
                 "0.08em",
             }}
           >
-            PAYMENT
+            ANALYSIS REPORT
           </p>
 
           <h1
@@ -386,14 +511,14 @@ function PaymentSuccessContent() {
               margin:
                 "18px 0 0",
               fontSize:
-                "clamp(30px, 5vw, 44px)",
+                "clamp(28px, 4vw, 38px)",
               lineHeight:
-                1.2,
+                1.25,
               letterSpacing:
                 "-0.04em",
             }}
           >
-            결제 처리 중입니다.
+            리포트를 생성하고 있습니다.
           </h1>
 
           <p
@@ -409,8 +534,8 @@ function PaymentSuccessContent() {
           >
             {message}
             <br />
-            창을 닫거나 새로고침하지
-            마세요.
+            매도 상황을 분석하고 있으니
+            잠시만 기다려주세요.
           </p>
         </section>
       </main>
@@ -462,7 +587,9 @@ function PaymentSuccessContent() {
                 "0.08em",
             }}
           >
-            PAYMENT ERROR
+            {analysisFailedAfterPayment
+              ? "ANALYSIS ERROR"
+              : "PAYMENT ERROR"}
           </p>
 
           <h1
@@ -477,8 +604,9 @@ function PaymentSuccessContent() {
                 "-0.04em",
             }}
           >
-            결제 처리를 완료하지
-            못했습니다.
+            {analysisFailedAfterPayment
+              ? "결제는 완료됐지만 리포트를 생성하지 못했습니다."
+              : "결제 처리를 완료하지 못했습니다."}
           </h1>
 
           <p
@@ -495,31 +623,76 @@ function PaymentSuccessContent() {
             {message}
           </p>
 
-          <a
-            href="/#application"
-            style={{
-              display:
-                "inline-flex",
-              marginTop: 28,
-              minHeight: 52,
-              padding:
-                "0 24px",
-              alignItems:
-                "center",
-              justifyContent:
-                "center",
-              background:
-                "#0b684d",
-              color:
-                "#fff",
-              textDecoration:
-                "none",
-              fontWeight:
-                800,
-            }}
-          >
-            입력 화면으로 돌아가기
-          </a>
+          {analysisFailedAfterPayment ? (
+            <button
+              type="button"
+              onClick={
+                retryAnalysis
+              }
+              disabled={
+                isAnalysisRetrying
+              }
+              style={{
+                display:
+                  "inline-flex",
+                marginTop: 28,
+                minHeight: 52,
+                padding:
+                  "0 24px",
+                alignItems:
+                  "center",
+                justifyContent:
+                  "center",
+                border: 0,
+                background:
+                  "#0b684d",
+                color:
+                  "#fff",
+                font:
+                  "inherit",
+                fontWeight:
+                  800,
+                cursor:
+                  isAnalysisRetrying
+                    ? "not-allowed"
+                    : "pointer",
+                opacity:
+                  isAnalysisRetrying
+                    ? 0.6
+                    : 1,
+              }}
+            >
+              {isAnalysisRetrying
+                ? "리포트 다시 생성 중…"
+                : "리포트 다시 생성하기"}
+            </button>
+          ) : (
+            <a
+              href="/#application"
+              style={{
+                display:
+                  "inline-flex",
+                marginTop: 28,
+                minHeight: 52,
+                padding:
+                  "0 24px",
+                alignItems:
+                  "center",
+                justifyContent:
+                  "center",
+                background:
+                  "#0b684d",
+                color:
+                  "#fff",
+                textDecoration:
+                  "none",
+                fontWeight:
+                  800,
+              }}
+            >
+              입력 화면으로 돌아가기
+            </a>
+          )}
 
           <p
             style={{
@@ -532,10 +705,9 @@ function PaymentSuccessContent() {
                 1.7,
             }}
           >
-            결제 금액이 실제로 승인됐는데
-            리포트가 생성되지 않았다면
-            molip.help@gmail.com으로
-            문의해 주세요.
+            {analysisFailedAfterPayment
+              ? "다시 생성해도 리포트가 나오지 않으면 molip.help@gmail.com으로 문의해 주세요. 추가 결제는 필요하지 않습니다."
+              : "결제 금액이 실제로 승인됐는데 리포트가 생성되지 않았다면 molip.help@gmail.com으로 문의해 주세요."}
           </p>
         </section>
       </main>

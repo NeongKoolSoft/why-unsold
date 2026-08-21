@@ -646,17 +646,6 @@ function formatMonths(
     : `${years}년`;
 }
 
-function formatArea(
-  value: number
-) {
-  return value.toLocaleString(
-    "ko-KR",
-    {
-      maximumFractionDigits: 4,
-    }
-  );
-}
-
 function reportDates(
   listedDays: number
 ) {
@@ -1456,7 +1445,9 @@ export default function DiagnosisForm() {
 
     setIsLoadingAreas(true);
     setAreaLookupError("");
-    setAreaLookupMessage("");
+    setAreaLookupMessage(
+      "전용면적을 조회하고 있습니다. 최근 5년 공공데이터를 확인하므로 다소 시간이 걸릴 수 있습니다."
+    );
     setAvailableAreas([]);
     setSelectedExclusiveArea(
       ""
@@ -1503,12 +1494,31 @@ export default function DiagnosisForm() {
         );
       }
 
+      const normalizedAreas =
+        Array.from(
+          new Set(
+            data.availableAreas
+              .filter(
+                (area) =>
+                  Number.isFinite(
+                    area
+                  ) &&
+                  area > 0
+              )
+              .map((area) =>
+                Math.floor(area)
+              )
+          )
+        ).sort(
+          (a, b) => a - b
+        );
+
       setAvailableAreas(
-        data.availableAreas
+        normalizedAreas
       );
 
       setAreaLookupMessage(
-        `최근 5년 실거래에서 전용면적 ${data.availableAreas.length}개를 찾았습니다.`
+        `최근 5년 실거래에서 전용면적 ${normalizedAreas.length}개 유형을 찾았습니다. 소수점 이하는 생략해 표시합니다.`
       );
     } catch (error) {
       setAreaLookupError(
@@ -2125,51 +2135,43 @@ export default function DiagnosisForm() {
                   gap: 8,
                 }}
               >
-                <select
-                  name="exclusiveArea"
-                  required
-                  value={
-                    selectedExclusiveArea
-                  }
-                  disabled={
-                    availableAreas.length ===
-                    0
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    setSelectedExclusiveArea(
-                      event.target
-                        .value
-                    )
-                  }
-                >
-                  <option
-                    value=""
-                    disabled
-                  >
-                    {availableAreas.length >
-                    0
-                      ? "전용면적을 선택하세요"
-                      : "먼저 전용면적을 불러오세요"}
-                  </option>
+                <div className="unit-input">
+                  <input
+                    name="exclusiveArea"
+                    type="number"
+                    min="1"
+                    step="1"
+                    required
+                    list="exclusive-area-options"
+                    value={
+                      selectedExclusiveArea
+                    }
+                    placeholder="예: 84"
+                    onChange={(
+                      event
+                    ) =>
+                      setSelectedExclusiveArea(
+                        event.target
+                          .value
+                      )
+                    }
+                  />
 
-                  {availableAreas.map(
-                    (area) => (
-                      <option
-                        value={String(
-                          area
-                        )}
-                        key={area}
-                      >
-                        {formatArea(
-                          area
-                        )}
-                        ㎡
-                      </option>
-                    )
-                  )}
-                </select>
+                  <b>㎡</b>
+
+                  <datalist id="exclusive-area-options">
+                    {availableAreas.map(
+                      (area) => (
+                        <option
+                          value={String(
+                            area
+                          )}
+                          key={area}
+                        />
+                      )
+                    )}
+                  </datalist>
+                </div>
 
                 <button
                   type="button"
@@ -2217,6 +2219,22 @@ export default function DiagnosisForm() {
                     : "불러오기"}
                 </button>
               </div>
+
+              <small
+                style={{
+                  display: "block",
+                  marginTop: 8,
+                  color: "#65726b",
+                  fontSize: 12,
+                  lineHeight: 1.6,
+                  fontWeight: 400,
+                }}
+              >
+                전용면적을 알고 있다면 정수로 직접
+                입력할 수 있습니다. 불러오기는 최근
+                5년 공공데이터를 확인하므로 다소
+                시간이 걸릴 수 있습니다.
+              </small>
             </label>
 
             <label>

@@ -366,7 +366,7 @@ const SYSTEM_PROMPT = `
 당신은 대한민국 아파트 매도 정체 상황을 분석하는
 데이터 기반 리포트 작성 엔진입니다.
 
-이 결과는 웹 화면에 표시되는 5페이지짜리
+이 결과는 웹 화면에 표시되는
 유료 매도 분석 리포트에 그대로 삽입됩니다.
 
 분석의 깊이는 충분해야 하지만
@@ -439,7 +439,7 @@ existingRuleBasedDiagnosis
 [문장 길이]
 ==================================================
 
-5페이지 리포트에 들어가지만
+매도 분석 리포트에 들어가므로
 문장은 짧고 밀도 있게 유지하십시오.
 
 반드시 다음 기준을 지키십시오.
@@ -1101,7 +1101,7 @@ function buildUserPrompt(
 서비스가 수집하고 계산한 데이터입니다.
 
 이 JSON을 유일한 사실 데이터로 사용하여
-5페이지 매도 분석 리포트의 분석 결과를 작성하십시오.
+매도 분석 리포트의 분석 결과를 작성하십시오.
 
 중요:
 
@@ -1150,6 +1150,77 @@ function extractGeminiText(
     )
     .join("")
     .trim();
+}
+
+function parseGeminiJson(
+  outputText: string
+): unknown {
+  const cleaned =
+    outputText
+      .replace(/^\uFEFF/, "")
+      .trim();
+
+  const attempts: string[] = [
+    cleaned,
+  ];
+
+  const fencedMatch =
+    cleaned.match(
+      /^```(?:json)?\s*([\s\S]*?)\s*```$/i
+    );
+
+  if (fencedMatch?.[1]) {
+    attempts.push(
+      fencedMatch[1].trim()
+    );
+  }
+
+  const firstBrace =
+    cleaned.indexOf("{");
+
+  const lastBrace =
+    cleaned.lastIndexOf("}");
+
+  if (
+    firstBrace >= 0 &&
+    lastBrace > firstBrace
+  ) {
+    attempts.push(
+      cleaned
+        .slice(
+          firstBrace,
+          lastBrace + 1
+        )
+        .trim()
+    );
+  }
+
+  let lastError: unknown =
+    null;
+
+  for (
+    const attempt of
+    Array.from(
+      new Set(attempts)
+    )
+  ) {
+    try {
+      return JSON.parse(
+        attempt
+      );
+    } catch (error) {
+      lastError =
+        error;
+    }
+  }
+
+  throw (
+    lastError instanceof Error
+      ? lastError
+      : new Error(
+          "Gemini JSON 파싱 실패"
+        )
+  );
 }
 
 function validateAnalysisShape(
@@ -1524,14 +1595,36 @@ export async function POST(
 
     try {
       parsed =
-        JSON.parse(
+        parseGeminiJson(
           outputText
         );
-    } catch {
+    } catch (error) {
+      console.error(
+        "[analysis] Gemini JSON parse failed",
+        {
+          model,
+          finishReason:
+            candidate.finishReason ??
+            null,
+          outputLength:
+            outputText.length,
+          parseError:
+            error instanceof Error
+              ? error.message
+              : "unknown",
+        }
+      );
+
       return NextResponse.json(
         {
           error:
             "Gemini 분석 결과 JSON을 해석하지 못했습니다.",
+
+          detail:
+            candidate.finishReason ===
+            "MAX_TOKENS"
+              ? "Gemini 응답이 길이 제한으로 중간에 잘렸습니다. 다시 시도해주세요."
+              : "Gemini 응답 형식을 정상적으로 읽지 못했습니다. 다시 시도해주세요.",
 
           finishReason:
             candidate.finishReason ??
@@ -1548,10 +1641,23 @@ export async function POST(
         parsed
       )
     ) {
+      console.error(
+        "[analysis] Gemini response shape mismatch",
+        {
+          model,
+          finishReason:
+            candidate.finishReason ??
+            null,
+        }
+      );
+
       return NextResponse.json(
         {
           error:
             "Gemini 분석 결과의 구조가 예상 형식과 다릅니다.",
+
+          detail:
+            "분석 결과 형식 검증에 실패했습니다. 다시 시도해주세요.",
         },
         {
           status: 502,
