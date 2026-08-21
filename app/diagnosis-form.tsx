@@ -39,6 +39,127 @@ type Region = {
   districts: readonly (readonly [string, string])[];
 };
 
+type TossPaymentWindow = {
+  on: (
+    eventName: "paymentRequest",
+    callback: () => void | Promise<void>
+  ) => void;
+  destroy: () => void;
+};
+
+type TossWidgets = {
+  setAmount: (amount: {
+    value: number;
+    currency: "KRW";
+  }) => Promise<void>;
+  renderPaymentWindow: () => Promise<TossPaymentWindow>;
+  requestPayment: (request: {
+    orderId: string;
+    orderName: string;
+    successUrl: string;
+    failUrl: string;
+  }) => Promise<void>;
+};
+
+type TossPaymentsInstance = {
+  widgets: (params: {
+    customerKey: string;
+  }) => TossWidgets;
+};
+
+declare global {
+  interface Window {
+    TossPayments?: (
+      clientKey: string
+    ) => TossPaymentsInstance;
+  }
+}
+
+const REPORT_PRICE = 20000;
+const TOSS_SDK_URL =
+  "https://js.tosspayments.com/v2/standard";
+
+function loadTossPaymentsSdk() {
+  return new Promise<void>(
+    (resolve, reject) => {
+      if (window.TossPayments) {
+        resolve();
+        return;
+      }
+
+      const existingScript =
+        document.querySelector<HTMLScriptElement>(
+          `script[src="${TOSS_SDK_URL}"]`
+        );
+
+      if (existingScript) {
+        existingScript.addEventListener(
+          "load",
+          () => resolve(),
+          { once: true }
+        );
+
+        existingScript.addEventListener(
+          "error",
+          () =>
+            reject(
+              new Error(
+                "토스페이먼츠 결제 모듈을 불러오지 못했습니다."
+              )
+            ),
+          { once: true }
+        );
+
+        return;
+      }
+
+      const script =
+        document.createElement(
+          "script"
+        );
+
+      script.src =
+        TOSS_SDK_URL;
+      script.async = true;
+
+      script.onload = () =>
+        resolve();
+
+      script.onerror = () =>
+        reject(
+          new Error(
+            "토스페이먼츠 결제 모듈을 불러오지 못했습니다."
+          )
+        );
+
+      document.head.appendChild(
+        script
+      );
+    }
+  );
+}
+
+function createOrderId() {
+  if (
+    typeof crypto !==
+      "undefined" &&
+    "randomUUID" in crypto
+  ) {
+    return `WHYUNSOLD-${crypto
+      .randomUUID()
+      .replaceAll("-", "")}`;
+  }
+
+  return (
+    "WHYUNSOLD-" +
+    Date.now().toString(36) +
+    "-" +
+    Math.random()
+      .toString(36)
+      .slice(2, 12)
+  );
+}
+
 const REGIONS: readonly Region[] = [
   {
     name: "서울특별시",
@@ -1146,6 +1267,12 @@ export default function DiagnosisForm() {
     useState(false);
 
   const [
+    isOpeningPayment,
+    setIsOpeningPayment,
+  ] =
+    useState(false);
+
+  const [
     isGeneratingReport,
     setIsGeneratingReport,
   ] =
@@ -1687,26 +1814,120 @@ export default function DiagnosisForm() {
   async function continueAfterPayment() {
     if (
       !pendingDiagnosis ||
-      !agreedToPaymentTerms
+      !agreedToPaymentTerms ||
+      isOpeningPayment
     ) {
       return;
     }
 
-    /*
-      TODO: 사업자등록 및 토스페이먼츠 연동 후 이 위치에서
-      1) 토스 결제창 호출
-      2) 결제 성공 페이지 이동
-      3) 서버 결제 승인 확인
-      4) 승인된 주문만 /api/analysis 실행
-      순서로 연결합니다.
+    const clientKey =
+      process.env
+        .NEXT_PUBLIC_TOSS_CLIENT_KEY;
 
-      현재 개발 단계에서는 결제 승인 단계를 건너뛰고
-      리포트 생성 흐름만 계속 테스트합니다.
-    */
+    if (!clientKey) {
+      setReportError(
+        "토스페이먼츠 클라이언트 키가 설정되지 않았습니다."
+      );
+      return;
+    }
 
-    await generateReport(
-      pendingDiagnosis
-    );
+    setIsOpeningPayment(true);
+    setReportError("");
+
+    try {
+      await loadTossPaymentsSdk();
+
+      if (
+        !window.TossPayments
+      ) {
+        throw new Error(
+          "토스페이먼츠 결제 모듈을 초기화하지 못했습니다."
+        );
+      }
+
+      const orderId =
+        createOrderId();
+
+      const baseUrl =
+        window.location.origin;
+
+      sessionStorage.setItem(
+        `whyunsold:order:${orderId}`,
+        JSON.stringify({
+          orderId,
+          amount:
+            REPORT_PRICE,
+          diagnosis:
+            pendingDiagnosis,
+          createdAt:
+            new Date().toISOString(),
+        })
+      );
+
+      const tossPayments =
+        window.TossPayments(
+          clientKey
+        );
+
+      const widgets =
+        tossPayments.widgets({
+          customerKey:
+            "ANONYMOUS",
+        });
+
+      await widgets.setAmount({
+        value: REPORT_PRICE,
+        currency: "KRW",
+      });
+
+      const paymentWindow =
+        await widgets.renderPaymentWindow();
+
+      paymentWindow.on(
+        "paymentRequest",
+        async () => {
+          try {
+            await widgets.requestPayment(
+              {
+                orderId,
+                orderName:
+                  "매도 분석 리포트",
+                successUrl:
+                  `${baseUrl}/payment/success`,
+                failUrl:
+                  `${baseUrl}/payment/fail`,
+              }
+            );
+          } catch (error) {
+            const message =
+              error instanceof Error
+                ? error.message
+                : "결제 요청에 실패했습니다.";
+
+            setReportError(
+              message
+            );
+
+            setIsOpeningPayment(
+              false
+            );
+          }
+        }
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "결제창을 열지 못했습니다.";
+
+      setReportError(
+        message
+      );
+
+      setIsOpeningPayment(
+        false
+      );
+    }
   }
 
   return (
@@ -2283,10 +2504,9 @@ export default function DiagnosisForm() {
         <p className="submit-note">
           먼저 공개 실거래 자료와
           입력 정보를 확인합니다.
-          실제 출시에서는 결제 승인 후
-          AI 기반 분석 리포트를
-          생성합니다. 거래 성사를
-          보장하지 않습니다.
+          결제가 승인된 뒤 AI 기반
+          분석 리포트를 생성합니다.
+          거래 성사를 보장하지 않습니다.
         </p>
       </form>
 
@@ -2433,7 +2653,8 @@ export default function DiagnosisForm() {
               className="submit-button"
               type="button"
               disabled={
-                !agreedToPaymentTerms
+                !agreedToPaymentTerms ||
+                isOpeningPayment
               }
               onClick={
                 continueAfterPayment
@@ -2443,10 +2664,15 @@ export default function DiagnosisForm() {
                 width: "100%",
               }}
             >
-              리포트 생성 계속하기
-              <span aria-hidden="true">
-                →
-              </span>
+              {isOpeningPayment
+                ? "결제창 여는 중…"
+                : "20,000원 결제하고 리포트 만들기"}
+
+              {!isOpeningPayment && (
+                <span aria-hidden="true">
+                  →
+                </span>
+              )}
             </button>
 
             <p
@@ -2455,10 +2681,9 @@ export default function DiagnosisForm() {
                 marginTop: 14,
               }}
             >
-              토스페이먼츠 연동 전 개발 단계에서는
-              결제 승인 없이 다음 단계로 진행합니다.
-              실제 출시 시 이 버튼이 20,000원
-              토스 결제로 연결됩니다.
+              결제 인증이 완료되면 결제 금액을 서버에서
+              다시 확인하고 승인한 뒤 AI 분석 리포트를
+              생성합니다.
             </p>
           </div>
         )}
