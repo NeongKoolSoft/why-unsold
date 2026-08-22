@@ -13,21 +13,23 @@ import type {
 } from "../../report-types";
 
 type StoredOrder = {
-  orderId: string;
+  paymentId: string;
   amount: number;
   diagnosis: Diagnosis;
+  payMethod?: "CARD" | "TRANSFER";
   createdAt: string;
 };
 
 type ConfirmResponse = {
   ok?: boolean;
   payment?: {
-    paymentKey?: string;
-    orderId?: string;
+    paymentId?: string;
+    transactionId?: string | null;
     status?: string;
     totalAmount?: number;
+    currency?: string;
     method?: string | null;
-    approvedAt?: string | null;
+    paidAt?: string | null;
   };
   error?: string;
   detail?: string;
@@ -55,7 +57,7 @@ function PaymentSuccessContent() {
     message,
     setMessage,
   ] = useState(
-    "결제 승인을 확인하고 있습니다."
+    "결제 상태를 확인하고 있습니다."
   );
 
   const [
@@ -99,10 +101,10 @@ function PaymentSuccessContent() {
 
   async function runAnalysis(
     diagnosis: Diagnosis,
-    orderId: string
+    paymentId: string
   ) {
     const cachedResultKey =
-      `whyunsold:result:${orderId}`;
+      `whyunsold:result:${paymentId}`;
 
     const analysisResponse =
       await fetch(
@@ -151,7 +153,7 @@ function PaymentSuccessContent() {
     );
 
     sessionStorage.removeItem(
-      `whyunsold:order:${orderId}`
+      `whyunsold:order:${paymentId}`
     );
 
     setResult(
@@ -184,14 +186,14 @@ function PaymentSuccessContent() {
         window.location.search
       );
 
-    const orderId =
+    const paymentId =
       searchParams.get(
-        "orderId"
+        "paymentId"
       );
 
-    if (!orderId) {
+    if (!paymentId) {
       setMessage(
-        "주문번호를 확인할 수 없습니다."
+        "결제번호를 확인할 수 없습니다."
       );
       return;
     }
@@ -209,7 +211,7 @@ function PaymentSuccessContent() {
     try {
       await runAnalysis(
         paidDiagnosis,
-        orderId
+        paymentId
       );
     } catch (error) {
       const errorMessage =
@@ -248,50 +250,47 @@ function PaymentSuccessContent() {
           window.location.search
         );
 
-      const paymentKey =
+      const paymentId =
         searchParams.get(
-          "paymentKey"
+          "paymentId"
         );
 
-      const orderId =
+      const paymentErrorCode =
         searchParams.get(
-          "orderId"
+          "code"
         );
 
-      const amount =
-        Number(
-          searchParams.get(
-            "amount"
-          )
+      const paymentErrorMessage =
+        searchParams.get(
+          "message"
         );
 
-      if (
-        !paymentKey ||
-        !orderId ||
-        !Number.isFinite(amount)
-      ) {
+      if (!paymentId) {
         setStatus("error");
         setMessage(
-          "결제 결과 정보가 올바르지 않습니다."
+          "결제 결과의 결제번호를 확인할 수 없습니다."
         );
         return;
       }
 
-      if (
-        amount !== REPORT_PRICE
-      ) {
+      if (paymentErrorCode) {
+        sessionStorage.removeItem(
+          `whyunsold:order:${paymentId}`
+        );
+
         setStatus("error");
         setMessage(
-          "결제 금액이 올바르지 않습니다."
+          paymentErrorMessage ||
+            `결제가 완료되지 않았습니다. (${paymentErrorCode})`
         );
         return;
       }
 
       const storageKey =
-        `whyunsold:order:${orderId}`;
+        `whyunsold:order:${paymentId}`;
 
       const cachedResultKey =
-        `whyunsold:result:${orderId}`;
+        `whyunsold:result:${paymentId}`;
 
       const cachedResult =
         sessionStorage.getItem(
@@ -347,22 +346,22 @@ function PaymentSuccessContent() {
       }
 
       if (
-        storedOrder.orderId !==
-          orderId ||
+        storedOrder.paymentId !==
+          paymentId ||
         storedOrder.amount !==
           REPORT_PRICE ||
         !storedOrder.diagnosis
       ) {
         setStatus("error");
         setMessage(
-          "주문 정보가 결제 결과와 일치하지 않습니다."
+          "저장된 결제 정보가 결제 결과와 일치하지 않습니다."
         );
         return;
       }
 
       try {
         setMessage(
-          "결제를 승인하고 있습니다."
+          "결제 상태를 확인하고 있습니다."
         );
 
         const confirmResponse =
@@ -376,9 +375,7 @@ function PaymentSuccessContent() {
               },
               body:
                 JSON.stringify({
-                  paymentKey,
-                  orderId,
-                  amount,
+                  paymentId,
                 }),
               cache:
                 "no-store",
@@ -395,7 +392,7 @@ function PaymentSuccessContent() {
           throw new Error(
             confirmData.detail ||
               confirmData.error ||
-              "결제 승인에 실패했습니다."
+              "결제 상태 확인에 실패했습니다."
           );
         }
 
@@ -416,7 +413,7 @@ function PaymentSuccessContent() {
         try {
           await runAnalysis(
             storedOrder.diagnosis,
-            orderId
+            paymentId
           );
         } catch (analysisError) {
           const analysisMessage =
@@ -707,7 +704,7 @@ function PaymentSuccessContent() {
           >
             {analysisFailedAfterPayment
               ? "다시 생성해도 리포트가 나오지 않으면 molip.help@gmail.com으로 문의해 주세요. 추가 결제는 필요하지 않습니다."
-              : "결제 금액이 실제로 승인됐는데 리포트가 생성되지 않았다면 molip.help@gmail.com으로 문의해 주세요."}
+              : "결제가 완료된 것으로 보이는데 리포트가 생성되지 않았다면 molip.help@gmail.com으로 문의해 주세요."}
           </p>
         </section>
       </main>

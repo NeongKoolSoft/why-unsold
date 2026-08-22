@@ -39,57 +39,60 @@ type Region = {
   districts: readonly (readonly [string, string])[];
 };
 
-type TossPaymentWindow = {
-  on: (
-    eventName: "paymentRequest",
-    callback: () => void | Promise<void>
-  ) => void;
-  destroy: () => void;
+type PortOnePayMethod =
+  | "CARD"
+  | "TRANSFER";
+
+type PortOnePaymentResponse = {
+  transactionType?: "PAYMENT";
+  txId?: string;
+  paymentId?: string;
+  code?: string;
+  message?: string;
+  pgCode?: string;
+  pgMessage?: string;
 };
 
-type TossWidgets = {
-  setAmount: (amount: {
-    value: number;
-    currency: "KRW";
-  }) => Promise<void>;
-  renderPaymentWindow: () => Promise<TossPaymentWindow>;
-  requestPayment: (request: {
-    orderId: string;
-    orderName: string;
-    successUrl: string;
-    failUrl: string;
-  }) => Promise<void>;
+type PortOneRequestPayment = {
+  storeId: string;
+  channelKey: string;
+  paymentId: string;
+  orderName: string;
+  totalAmount: number;
+  currency: "CURRENCY_KRW";
+  payMethod: PortOnePayMethod;
+  redirectUrl: string;
+  forceRedirect: boolean;
+  productType: "DIGITAL";
 };
 
-type TossPaymentsInstance = {
-  widgets: (params: {
-    customerKey: string;
-  }) => TossWidgets;
+type PortOneBrowserSdk = {
+  requestPayment: (
+    request: PortOneRequestPayment
+  ) => Promise<PortOnePaymentResponse>;
 };
 
 declare global {
   interface Window {
-    TossPayments?: (
-      clientKey: string
-    ) => TossPaymentsInstance;
+    PortOne?: PortOneBrowserSdk;
   }
 }
 
 const REPORT_PRICE = 20000;
-const TOSS_SDK_URL =
-  "https://js.tosspayments.com/v2/standard";
+const PORTONE_SDK_URL =
+  "https://cdn.portone.io/v2/browser-sdk.js";
 
-function loadTossPaymentsSdk() {
+function loadPortOneSdk() {
   return new Promise<void>(
     (resolve, reject) => {
-      if (window.TossPayments) {
+      if (window.PortOne) {
         resolve();
         return;
       }
 
       const existingScript =
         document.querySelector<HTMLScriptElement>(
-          `script[src="${TOSS_SDK_URL}"]`
+          `script[src="${PORTONE_SDK_URL}"]`
         );
 
       if (existingScript) {
@@ -104,7 +107,7 @@ function loadTossPaymentsSdk() {
           () =>
             reject(
               new Error(
-                "토스페이먼츠 결제 모듈을 불러오지 못했습니다."
+                "포트원 결제 모듈을 불러오지 못했습니다."
               )
             ),
           { once: true }
@@ -119,7 +122,7 @@ function loadTossPaymentsSdk() {
         );
 
       script.src =
-        TOSS_SDK_URL;
+        PORTONE_SDK_URL;
       script.async = true;
 
       script.onload = () =>
@@ -128,7 +131,7 @@ function loadTossPaymentsSdk() {
       script.onerror = () =>
         reject(
           new Error(
-            "토스페이먼츠 결제 모듈을 불러오지 못했습니다."
+            "포트원 결제 모듈을 불러오지 못했습니다."
           )
         );
 
@@ -139,25 +142,25 @@ function loadTossPaymentsSdk() {
   );
 }
 
-function createOrderId() {
+function createPaymentId() {
   if (
     typeof crypto !==
       "undefined" &&
     "randomUUID" in crypto
   ) {
-    return `WHYUNSOLD-${crypto
+    return `WHYUNSOLD${crypto
       .randomUUID()
-      .replaceAll("-", "")}`;
+      .replaceAll("-", "")
+      .slice(0, 28)}`;
   }
 
   return (
-    "WHYUNSOLD-" +
+    "WHYUNSOLD" +
     Date.now().toString(36) +
-    "-" +
     Math.random()
       .toString(36)
-      .slice(2, 12)
-  );
+      .slice(2, 10)
+  ).slice(0, 40);
 }
 
 const REGIONS: readonly Region[] = [
@@ -1262,6 +1265,14 @@ export default function DiagnosisForm() {
     useState(false);
 
   const [
+    selectedPayMethod,
+    setSelectedPayMethod,
+  ] =
+    useState<PortOnePayMethod>(
+      "CARD"
+    );
+
+  const [
     isGeneratingReport,
     setIsGeneratingReport,
   ] =
@@ -1830,13 +1841,20 @@ export default function DiagnosisForm() {
       return;
     }
 
-    const clientKey =
+    const storeId =
       process.env
-        .NEXT_PUBLIC_TOSS_CLIENT_KEY;
+        .NEXT_PUBLIC_PORTONE_STORE_ID;
 
-    if (!clientKey) {
+    const channelKey =
+      process.env
+        .NEXT_PUBLIC_PORTONE_CHANNEL_KEY;
+
+    if (
+      !storeId ||
+      !channelKey
+    ) {
       setReportError(
-        "토스페이먼츠 클라이언트 키가 설정되지 않았습니다."
+        "포트원 결제 연동 정보가 설정되지 않았습니다."
       );
       return;
     }
@@ -1845,85 +1863,81 @@ export default function DiagnosisForm() {
     setReportError("");
 
     try {
-      await loadTossPaymentsSdk();
+      await loadPortOneSdk();
 
-      if (
-        !window.TossPayments
-      ) {
+      if (!window.PortOne) {
         throw new Error(
-          "토스페이먼츠 결제 모듈을 초기화하지 못했습니다."
+          "포트원 결제 모듈을 초기화하지 못했습니다."
         );
       }
 
-      const orderId =
-        createOrderId();
+      const paymentId =
+        createPaymentId();
 
       const baseUrl =
         window.location.origin;
 
       sessionStorage.setItem(
-        `whyunsold:order:${orderId}`,
+        `whyunsold:order:${paymentId}`,
         JSON.stringify({
-          orderId,
+          paymentId,
           amount:
             REPORT_PRICE,
           diagnosis:
             pendingDiagnosis,
+          payMethod:
+            selectedPayMethod,
           createdAt:
             new Date().toISOString(),
         })
       );
 
-      const tossPayments =
-        window.TossPayments(
-          clientKey
+      const response =
+        await window.PortOne.requestPayment(
+          {
+            storeId,
+            channelKey,
+            paymentId,
+            orderName:
+              "매도 분석 리포트",
+            totalAmount:
+              REPORT_PRICE,
+            currency:
+              "CURRENCY_KRW",
+            payMethod:
+              selectedPayMethod,
+            redirectUrl:
+              `${baseUrl}/payment/success`,
+            forceRedirect:
+              true,
+            productType:
+              "DIGITAL",
+          }
         );
 
-      const widgets =
-        tossPayments.widgets({
-          customerKey:
-            "ANONYMOUS",
-        });
+      if (
+        response?.code
+      ) {
+        sessionStorage.removeItem(
+          `whyunsold:order:${paymentId}`
+        );
 
-      await widgets.setAmount({
-        value: REPORT_PRICE,
-        currency: "KRW",
-      });
+        throw new Error(
+          response.message ||
+            response.pgMessage ||
+            "결제 요청에 실패했습니다."
+        );
+      }
 
-      const paymentWindow =
-        await widgets.renderPaymentWindow();
-
-      paymentWindow.on(
-        "paymentRequest",
-        async () => {
-          try {
-            await widgets.requestPayment(
-              {
-                orderId,
-                orderName:
-                  "매도 분석 리포트",
-                successUrl:
-                  `${baseUrl}/payment/success`,
-                failUrl:
-                  `${baseUrl}/payment/fail`,
-              }
-            );
-          } catch (error) {
-            const message =
-              error instanceof Error
-                ? error.message
-                : "결제 요청에 실패했습니다.";
-
-            setReportError(
-              message
-            );
-
-            setIsOpeningPayment(
-              false
-            );
-          }
-        }
-      );
+      if (
+        response?.paymentId &&
+        response.paymentId !==
+          paymentId
+      ) {
+        throw new Error(
+          "결제 결과의 결제번호가 요청 정보와 일치하지 않습니다."
+        );
+      }
     } catch (error) {
       const message =
         error instanceof Error
@@ -2138,9 +2152,9 @@ export default function DiagnosisForm() {
                 <div className="unit-input">
                   <input
                     name="exclusiveArea"
-                    type="number"
-                    min="1"
-                    step="1"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]+"
                     required
                     list="exclusive-area-options"
                     value={
@@ -2153,6 +2167,10 @@ export default function DiagnosisForm() {
                       setSelectedExclusiveArea(
                         event.target
                           .value
+                          .replace(
+                            /[^0-9]/g,
+                            ""
+                          )
                       )
                     }
                   />
@@ -2667,6 +2685,69 @@ export default function DiagnosisForm() {
               </span>
             </label>
 
+            <div
+              style={{
+                marginTop: 22,
+                padding: "18px 20px",
+                border:
+                  "1px solid #d7ddd8",
+                background:
+                  "#fff",
+              }}
+            >
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color:
+                    "#1c2922",
+                }}
+              >
+                결제수단
+              </label>
+
+              <select
+                value={
+                  selectedPayMethod
+                }
+                onChange={(
+                  event
+                ) =>
+                  setSelectedPayMethod(
+                    event.target
+                      .value as PortOnePayMethod
+                  )
+                }
+                disabled={
+                  isOpeningPayment
+                }
+                style={{
+                  width: "100%",
+                  minHeight: 48,
+                  marginTop: 10,
+                  padding:
+                    "0 14px",
+                  border:
+                    "1px solid #cfd6d1",
+                  background:
+                    "#fff",
+                  color:
+                    "#1c2922",
+                  font:
+                    "inherit",
+                }}
+              >
+                <option value="CARD">
+                  신용·체크카드
+                </option>
+
+                <option value="TRANSFER">
+                  실시간 계좌이체
+                </option>
+              </select>
+            </div>
+
             <button
               className="submit-button"
               type="button"
@@ -2699,8 +2780,8 @@ export default function DiagnosisForm() {
                 marginTop: 14,
               }}
             >
-              결제 인증이 완료되면 결제 금액을 서버에서
-              다시 확인하고 승인한 뒤 AI 분석 리포트를
+              결제가 완료되면 서버에서 결제 상태와
+              결제 금액을 다시 확인한 뒤 AI 분석 리포트를
               생성합니다.
             </p>
           </div>
