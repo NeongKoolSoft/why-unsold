@@ -1877,8 +1877,7 @@ export default function DiagnosisForm() {
       const baseUrl =
         window.location.origin;
 
-      sessionStorage.setItem(
-        `whyunsold:order:${paymentId}`,
+      const storedOrder =
         JSON.stringify({
           paymentId,
           amount:
@@ -1889,7 +1888,16 @@ export default function DiagnosisForm() {
             selectedPayMethod,
           createdAt:
             new Date().toISOString(),
-        })
+        });
+
+      sessionStorage.setItem(
+        `whyunsold:order:${paymentId}`,
+        storedOrder
+      );
+
+      localStorage.setItem(
+        `whyunsold:order:${paymentId}`,
+        storedOrder
       );
 
       const response =
@@ -1919,6 +1927,10 @@ export default function DiagnosisForm() {
         response?.code
       ) {
         sessionStorage.removeItem(
+          `whyunsold:order:${paymentId}`
+        );
+
+        localStorage.removeItem(
           `whyunsold:order:${paymentId}`
         );
 

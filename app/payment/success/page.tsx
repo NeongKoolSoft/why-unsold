@@ -145,14 +145,26 @@ function PaymentSuccessContent() {
           analysisData.analysis,
       };
 
-    sessionStorage.setItem(
-      cachedResultKey,
+    const serializedResult =
       JSON.stringify(
         finalResult
-      )
+      );
+
+    sessionStorage.setItem(
+      cachedResultKey,
+      serializedResult
+    );
+
+    localStorage.setItem(
+      cachedResultKey,
+      serializedResult
     );
 
     sessionStorage.removeItem(
+      `whyunsold:order:${paymentId}`
+    );
+
+    localStorage.removeItem(
       `whyunsold:order:${paymentId}`
     );
 
@@ -278,6 +290,10 @@ function PaymentSuccessContent() {
           `whyunsold:order:${paymentId}`
         );
 
+        localStorage.removeItem(
+          `whyunsold:order:${paymentId}`
+        );
+
         setStatus("error");
         setMessage(
           paymentErrorMessage ||
@@ -294,6 +310,9 @@ function PaymentSuccessContent() {
 
       const cachedResult =
         sessionStorage.getItem(
+          cachedResultKey
+        ) ??
+        localStorage.getItem(
           cachedResultKey
         );
 
@@ -314,18 +333,25 @@ function PaymentSuccessContent() {
           sessionStorage.removeItem(
             cachedResultKey
           );
+
+          localStorage.removeItem(
+            cachedResultKey
+          );
         }
       }
 
       const storedOrderRaw =
         sessionStorage.getItem(
           storageKey
+        ) ??
+        localStorage.getItem(
+          storageKey
         );
 
       if (!storedOrderRaw) {
         setStatus("error");
         setMessage(
-          "결제 전 분석 정보를 찾지 못했습니다. 같은 브라우저에서 다시 진행해주세요."
+          "결제 전 분석 정보를 찾지 못했습니다. 결제를 시작한 브라우저로 돌아가 다시 확인해주세요."
         );
         return;
       }
@@ -338,6 +364,14 @@ function PaymentSuccessContent() {
             storedOrderRaw
           ) as StoredOrder;
       } catch {
+        sessionStorage.removeItem(
+          storageKey
+        );
+
+        localStorage.removeItem(
+          storageKey
+        );
+
         setStatus("error");
         setMessage(
           "저장된 주문 정보를 읽지 못했습니다."
