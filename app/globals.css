@@ -2651,58 +2651,57 @@ main > footer > a:last-child {
   html,
   body {
     width: 210mm;
-    background: #fff;
-  }
-
-  body {
-    margin: 0;
-    padding: 0;
-  }
-
-  main > *:not(.application-section) {
-    display: none !important;
-  }
-
-  .application-section {
+    margin: 0 !important;
     padding: 0 !important;
     background: #fff !important;
   }
 
-  .diagnosis-form {
-    padding: 0 !important;
-    border: 0 !important;
-    background: #fff !important;
-  }
-
-  .diagnosis-form > *:not(.report-result-wrap) {
+  /*
+   * 리포트가 어느 페이지/래퍼 안에 있더라도
+   * .report-result-wrap으로 이어지는 경로만 남깁니다.
+   * 기존처럼 .application-section 위치를 전제로 하지 않으므로
+   * 결제 성공 페이지에서도 빈 인쇄 화면이 나오지 않습니다.
+   */
+  body:has(.report-result-wrap)
+    > *:not(:has(.report-result-wrap)):not(.report-result-wrap),
+  body *:has(.report-result-wrap)
+    > *:not(:has(.report-result-wrap)):not(.report-result-wrap) {
     display: none !important;
   }
 
   .report-result-wrap {
+    width: 210mm !important;
+    max-width: none !important;
     margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
   }
 
   .basic-report,
   .detail-report {
-    width: 210mm;
-    max-width: none;
-    margin: 0;
-    display: block;
+    width: 210mm !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    gap: 0 !important;
+    background: #fff !important;
   }
 
   .basic-report-page,
   .detail-report-page {
-    width: 210mm;
-    height: auto;
-    min-height: 0;
-    margin: 0;
-    padding: 11mm 14mm 12mm;
-    border: 0;
-    box-shadow: none;
+    width: 210mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 11mm 14mm 12mm !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    display: block !important;
     break-after: page;
     page-break-after: always;
-    overflow: visible;
-    display: block;
+    background: #fff !important;
   }
 
   .basic-report-page:last-child,
@@ -2713,7 +2712,7 @@ main > footer > a:last-child {
 
   .basic-report-page::after,
   .detail-report-page::after {
-    display: none;
+    display: none !important;
   }
 
   .report-page-header {
@@ -2821,7 +2820,7 @@ main > footer > a:last-child {
     min-height: 30mm;
     margin-top: 6mm;
     padding: 5mm 6mm;
-    box-shadow: none;
+    box-shadow: none !important;
   }
 
   .detail-report-page:nth-child(5) .report-cause-box-premium {
@@ -2834,10 +2833,10 @@ main > footer > a:last-child {
   }
 
   .report-page-footer {
-    position: static;
-    left: auto;
-    right: auto;
-    bottom: auto;
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
     width: 100%;
     margin-top: 8mm;
     padding-top: 3mm;
@@ -2871,5 +2870,10 @@ main > footer > a:last-child {
 
   .report-controls {
     display: none !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
