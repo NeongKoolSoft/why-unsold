@@ -1605,11 +1605,6 @@ export default function DiagnosisForm() {
         ) ?? ""
       ).trim();
 
-    const isVerifiedApartment =
-      availableApartments.includes(
-        apartmentName
-      );
-
     if (
       !selectedRegionName ||
       !lawdCd
@@ -1626,13 +1621,6 @@ export default function DiagnosisForm() {
     ) {
       setAreaLookupError(
         "동과 아파트 단지명을 입력해주세요."
-      );
-      return;
-    }
-
-    if (!isVerifiedApartment) {
-      setAreaLookupError(
-        "먼저 단지 불러오기를 실행한 뒤 실제 단지명을 목록에서 선택해주세요."
       );
       return;
     }
@@ -1769,11 +1757,6 @@ export default function DiagnosisForm() {
         ) ?? ""
       ).trim();
 
-    const isVerifiedApartment =
-      availableApartments.includes(
-        apartmentName
-      );
-
     const exclusiveArea =
       String(
         form.get(
@@ -1802,13 +1785,6 @@ export default function DiagnosisForm() {
       `${String(
         now.getMonth() + 1
       ).padStart(2, "0")}`;
-
-    if (!isVerifiedApartment) {
-      setLookupError(
-        "먼저 단지 불러오기를 실행한 뒤 실제 단지명을 목록에서 선택해주세요."
-      );
-      return;
-    }
 
     if (
       !region ||
@@ -2447,9 +2423,9 @@ export default function DiagnosisForm() {
                   fontWeight: 400,
                 }}
               >
-                동을 입력한 뒤 단지 불러오기를 누르고,
-                실제 실거래 자료에 있는 단지명을 목록에서
-                선택해주세요.
+                단지명을 알고 있다면 직접 입력할 수 있습니다.
+                단지 불러오기는 오타 방지를 위한 보조 기능이며,
+                실제 조회 시 입력한 동·단지명을 다시 확인합니다.
               </small>
             </label>
 
@@ -2515,9 +2491,7 @@ export default function DiagnosisForm() {
                   disabled={
                     isLoadingAreas ||
                     !selectedDistrictCode ||
-                    !availableApartments.includes(
-                      selectedApartmentName.trim()
-                    ) ||
+                    !selectedApartmentName.trim() ||
                     isGeneratingReport
                   }
                   onClick={

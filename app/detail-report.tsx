@@ -558,6 +558,20 @@ export default function DetailReport({
           "매물 노출 상태와 실제 매수자의 판단 이유는 별도 확인이 필요합니다.",
         ];
 
+  function closeReport() {
+    const confirmed = window.confirm(
+      "리포트를 저장하셨나요?\n\n" +
+        "이 화면을 종료하면 현재 리포트를 다시 확인하기 어려울 수 있습니다.\n" +
+        "아직 저장하지 않았다면 취소를 누르고 먼저 저장해주세요."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    onEdit();
+  }
+
   return (
     <>
       <div className="detail-report">
@@ -1599,9 +1613,9 @@ export default function DetailReport({
         <button
           type="button"
           className="ghost"
-          onClick={onEdit}
+          onClick={closeReport}
         >
-          입력값 수정
+          종료하기
         </button>
       </div>
     </>
