@@ -28,6 +28,14 @@ type AreaLookupResult = {
   detail?: string;
 };
 
+type ApartmentLookupResult = {
+  availableApartments: string[];
+  matchedTransactionCount: number;
+  searchedMonths: number;
+  error?: string;
+  detail?: string;
+};
+
 type AnalysisApiResponse = {
   analysis?: AiDetailAnalysis;
   error?: string;
@@ -1279,6 +1287,36 @@ export default function DiagnosisForm() {
     useState(false);
 
   const [
+    isLoadingApartments,
+    setIsLoadingApartments,
+  ] =
+    useState(false);
+
+  const [
+    apartmentLookupError,
+    setApartmentLookupError,
+  ] =
+    useState("");
+
+  const [
+    apartmentLookupMessage,
+    setApartmentLookupMessage,
+  ] =
+    useState("");
+
+  const [
+    availableApartments,
+    setAvailableApartments,
+  ] =
+    useState<string[]>([]);
+
+  const [
+    selectedApartmentName,
+    setSelectedApartmentName,
+  ] =
+    useState("");
+
+  const [
     isLoadingAreas,
     setIsLoadingAreas,
   ] =
@@ -1367,6 +1405,14 @@ export default function DiagnosisForm() {
     );
   }
 
+  function resetApartmentOptions() {
+    setAvailableApartments([]);
+    setSelectedApartmentName("");
+    setApartmentLookupMessage("");
+    setApartmentLookupError("");
+    resetAreaOptions();
+  }
+
   function resetAreaOptions() {
     setAvailableAreas([]);
     setSelectedExclusiveArea(
@@ -1393,6 +1439,140 @@ export default function DiagnosisForm() {
         )?.offsetTop ?? 0,
       behavior: "smooth",
     });
+  }
+
+  async function loadApartments() {
+    if (!formRef.current) {
+      return;
+    }
+
+    const form =
+      new FormData(
+        formRef.current
+      );
+
+    const lawdCd =
+      String(
+        form.get("lawdCd") ??
+          ""
+      ).trim();
+
+    const legalDong =
+      String(
+        form.get(
+          "legalDong"
+        ) ?? ""
+      ).trim();
+
+    if (
+      !selectedRegionName ||
+      !lawdCd
+    ) {
+      setApartmentLookupError(
+        "시·도와 시군구를 선택해주세요."
+      );
+      return;
+    }
+
+    if (!legalDong) {
+      setApartmentLookupError(
+        "동을 입력해주세요."
+      );
+      return;
+    }
+
+    const now =
+      new Date();
+
+    const endYmd =
+      `${now.getFullYear()}` +
+      `${String(
+        now.getMonth() + 1
+      ).padStart(2, "0")}`;
+
+    setIsLoadingApartments(true);
+    setApartmentLookupError("");
+    setApartmentLookupMessage(
+      "단지명을 조회하고 있습니다. 최근 거래부터 확인하고 필요하면 조회 범위를 넓힙니다."
+    );
+    setAvailableApartments([]);
+    setSelectedApartmentName("");
+    resetAreaOptions();
+
+    try {
+      const query =
+        new URLSearchParams({
+          mode: "apartments",
+          lawdCd,
+          legalDong,
+          endYmd,
+          maxHistoryMonths:
+            "60",
+        });
+
+      const response =
+        await fetch(
+          `/api/real-estate?${query.toString()}`,
+          {
+            cache:
+              "no-store",
+          }
+        );
+
+      const data =
+        (await response.json()) as ApartmentLookupResult;
+
+      if (!response.ok) {
+        throw new Error(
+          data.detail ||
+            data.error ||
+            "아파트 단지명 조회에 실패했습니다."
+        );
+      }
+
+      const normalizedApartments =
+        Array.from(
+          new Set(
+            (data.availableApartments ?? [])
+              .map((name) =>
+                String(name).trim()
+              )
+              .filter(Boolean)
+          )
+        ).sort((a, b) =>
+          a.localeCompare(
+            b,
+            "ko-KR"
+          )
+        );
+
+      if (
+        normalizedApartments.length ===
+        0
+      ) {
+        throw new Error(
+          "최근 5년 안에 입력한 동의 아파트 실거래 단지명을 찾지 못했습니다. 동 이름을 다시 확인해주세요."
+        );
+      }
+
+      setAvailableApartments(
+        normalizedApartments
+      );
+
+      setApartmentLookupMessage(
+        `실거래 자료에서 단지 ${normalizedApartments.length}개를 찾았습니다. 아파트명을 입력하고 목록에서 선택해주세요.`
+      );
+    } catch (error) {
+      setApartmentLookupError(
+        error instanceof Error
+          ? error.message
+          : "아파트 단지명 조회에 실패했습니다."
+      );
+    } finally {
+      setIsLoadingApartments(
+        false
+      );
+    }
   }
 
   async function loadExclusiveAreas() {
@@ -1425,6 +1605,11 @@ export default function DiagnosisForm() {
         ) ?? ""
       ).trim();
 
+    const isVerifiedApartment =
+      availableApartments.includes(
+        apartmentName
+      );
+
     if (
       !selectedRegionName ||
       !lawdCd
@@ -1441,6 +1626,13 @@ export default function DiagnosisForm() {
     ) {
       setAreaLookupError(
         "동과 아파트 단지명을 입력해주세요."
+      );
+      return;
+    }
+
+    if (!isVerifiedApartment) {
+      setAreaLookupError(
+        "먼저 단지 불러오기를 실행한 뒤 실제 단지명을 목록에서 선택해주세요."
       );
       return;
     }
@@ -1577,6 +1769,11 @@ export default function DiagnosisForm() {
         ) ?? ""
       ).trim();
 
+    const isVerifiedApartment =
+      availableApartments.includes(
+        apartmentName
+      );
+
     const exclusiveArea =
       String(
         form.get(
@@ -1605,6 +1802,13 @@ export default function DiagnosisForm() {
       `${String(
         now.getMonth() + 1
       ).padStart(2, "0")}`;
+
+    if (!isVerifiedApartment) {
+      setLookupError(
+        "먼저 단지 불러오기를 실행한 뒤 실제 단지명을 목록에서 선택해주세요."
+      );
+      return;
+    }
 
     if (
       !region ||
@@ -2035,7 +2239,7 @@ export default function DiagnosisForm() {
                     ""
                   );
 
-                  resetAreaOptions();
+                  resetApartmentOptions();
                 }}
               >
                 <option
@@ -2086,7 +2290,7 @@ export default function DiagnosisForm() {
                       .value
                   );
 
-                  resetAreaOptions();
+                  resetApartmentOptions();
                 }}
               >
                 <option
@@ -2125,7 +2329,7 @@ export default function DiagnosisForm() {
                 required
                 placeholder="예: 잠실동"
                 onChange={
-                  resetAreaOptions
+                  resetApartmentOptions
                 }
               />
             </label>
@@ -2136,14 +2340,117 @@ export default function DiagnosisForm() {
                 <em>필수</em>
               </span>
 
-              <input
-                name="apartmentName"
-                required
-                placeholder="예: 리센츠"
-                onChange={
-                  resetAreaOptions
-                }
-              />
+              <div
+                style={{
+                  display:
+                    "grid",
+                  gridTemplateColumns:
+                    "minmax(0, 1fr) 88px",
+                  gap: 8,
+                }}
+              >
+                <input
+                  name="apartmentName"
+                  required
+                  list="apartment-name-options"
+                  value={
+                    selectedApartmentName
+                  }
+                  placeholder="예: 리센츠"
+                  onChange={(
+                    event
+                  ) => {
+                    const value =
+                      event.target.value;
+
+                    setSelectedApartmentName(
+                      value
+                    );
+
+                    resetAreaOptions();
+
+                    if (
+                      availableApartments.includes(
+                        value.trim()
+                      )
+                    ) {
+                      setApartmentLookupError(
+                        ""
+                      );
+                    }
+                  }}
+                />
+
+                <button
+                  type="button"
+                  disabled={
+                    isLoadingApartments ||
+                    !selectedDistrictCode ||
+                    isGeneratingReport
+                  }
+                  onClick={
+                    loadApartments
+                  }
+                  style={{
+                    minHeight: 50,
+                    padding:
+                      "0 10px",
+                    border:
+                      "1px solid #1c2922",
+                    background:
+                      "#fff",
+                    color:
+                      "#1c2922",
+                    font:
+                      "inherit",
+                    fontSize: 12,
+                    fontWeight:
+                      800,
+                    cursor:
+                      isLoadingApartments ||
+                      !selectedDistrictCode ||
+                      isGeneratingReport
+                        ? "not-allowed"
+                        : "pointer",
+                    opacity:
+                      isLoadingApartments ||
+                      !selectedDistrictCode ||
+                      isGeneratingReport
+                        ? 0.55
+                        : 1,
+                  }}
+                >
+                  {isLoadingApartments
+                    ? "조회 중…"
+                    : "단지 불러오기"}
+                </button>
+              </div>
+
+              <datalist id="apartment-name-options">
+                {availableApartments.map(
+                  (name) => (
+                    <option
+                      value={name}
+                      key={name}
+                    />
+                  )
+                )}
+              </datalist>
+
+              <small
+                style={{
+                  display: "block",
+                  marginTop: 8,
+                  color: "#65726b",
+                  fontSize: 12,
+                  lineHeight: 1.6,
+                  fontWeight: 400,
+                }}
+              >
+                동을 입력한 뒤 단지 불러오기를 누르고,
+                실제 실거래 자료에 있는 단지명을 목록에서
+                선택해주세요.
+              </small>
             </label>
 
             <label>
@@ -2208,6 +2515,9 @@ export default function DiagnosisForm() {
                   disabled={
                     isLoadingAreas ||
                     !selectedDistrictCode ||
+                    !availableApartments.includes(
+                      selectedApartmentName.trim()
+                    ) ||
                     isGeneratingReport
                   }
                   onClick={
@@ -2286,6 +2596,22 @@ export default function DiagnosisForm() {
               </div>
             </label>
           </div>
+
+          {apartmentLookupError && (
+            <p
+              className="submit-note"
+              role="alert"
+            >
+              단지명 조회 오류:{" "}
+              {apartmentLookupError}
+            </p>
+          )}
+
+          {apartmentLookupMessage && (
+            <p className="submit-note">
+              {apartmentLookupMessage}
+            </p>
+          )}
 
           {areaLookupError && (
             <p
@@ -2509,6 +2835,7 @@ export default function DiagnosisForm() {
           disabled={
             isPreparingPayment ||
             isGeneratingReport ||
+            isLoadingApartments ||
             isLoadingAreas
           }
         >

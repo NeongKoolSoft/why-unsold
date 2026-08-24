@@ -91,6 +91,48 @@ function monthsBetween(from: Date, toYmd: string) {
   );
 }
 
+async function fetchMonthlyTransactions(params: {
+  serviceKey: string;
+  lawdCd: string;
+  dealYmd: string;
+}) {
+  const searchParams = new URLSearchParams({
+    serviceKey: rawServiceKey(params.serviceKey),
+    LAWD_CD: params.lawdCd,
+    DEAL_YMD: params.dealYmd,
+    pageNo: "1",
+    numOfRows: "9999",
+  });
+
+  const response = await fetch(`${ENDPOINT}?${searchParams.toString()}`, {
+    cache: "no-store",
+  });
+
+  const xml = await response.text();
+
+  const resultCode =
+    readTag(xml, "resultCode") || readTag(xml, "returnReasonCode");
+
+  const resultMessage =
+    readTag(xml, "resultMsg") ||
+    readTag(xml, "returnAuthMsg") ||
+    readTag(xml, "errMsg");
+
+  if (
+    !response.ok ||
+    (resultCode && !["00", "000", "0000"].includes(resultCode))
+  ) {
+    throw new Error(
+      resultMessage || `국토교통부 API 요청 실패 (${response.status})`
+    );
+  }
+
+  return {
+    xml,
+    transactions: readItems(xml),
+  };
+}
+
 export async function GET(request: NextRequest) {
   const mode = request.nextUrl.searchParams.get("mode") ?? "summary";
   const lawdCd = request.nextUrl.searchParams.get("lawdCd") ?? "";
@@ -125,6 +167,7 @@ export async function GET(request: NextRequest) {
   }
 
   const endMonth = Number(endYmd.slice(4, 6));
+
   if (endMonth < 1 || endMonth > 12) {
     return NextResponse.json(
       { error: "endYmd의 월은 01부터 12까지여야 합니다." },
@@ -132,7 +175,14 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  if (!apartmentName) {
+  if (!["summary", "areas", "apartments"].includes(mode)) {
+    return NextResponse.json(
+      { error: "지원하지 않는 조회 mode입니다." },
+      { status: 400 }
+    );
+  }
+
+  if (mode !== "apartments" && !apartmentName) {
     return NextResponse.json(
       { error: "apartmentName을 입력해주세요." },
       { status: 400 }
@@ -140,7 +190,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (
-    mode !== "areas" &&
+    mode === "summary" &&
     (!Number.isFinite(exclusiveArea) || exclusiveArea <= 0)
   ) {
     return NextResponse.json(
@@ -184,6 +234,146 @@ export async function GET(request: NextRequest) {
     const normalizedTargetName = normalizeApartmentName(apartmentName);
     const normalizedTargetDong = normalizeLegalDong(legalDong);
 
+    if (mode === "apartments") {
+      if (!normalizedTargetDong) {
+        return NextResponse.json(
+          { error: "legalDong을 입력해주세요." },
+          { status: 400 }
+        );
+      }
+
+      const apartmentMap = new Map<
+        string,
+        {
+          apartmentName: string;
+          latestDealYear: number;
+          latestDealMonth: number;
+          latestDealDay: number;
+          transactionCount: number;
+        }
+      >();
+
+      for (const dealYmd of yearMonths) {
+        let transactions: ReturnType<typeof readItems>;
+
+        try {
+          ({ transactions } = await fetchMonthlyTransactions({
+            serviceKey,
+            lawdCd,
+            dealYmd,
+          }));
+        } catch (error) {
+          return NextResponse.json(
+            {
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "국토교통부 API 요청에 실패했습니다.",
+              failedYearMonth: dealYmd,
+            },
+            { status: 502 }
+          );
+        }
+
+        for (const transaction of transactions) {
+          if (
+            normalizeLegalDong(transaction.legalDong) !==
+            normalizedTargetDong
+          ) {
+            continue;
+          }
+
+          const apartmentNameValue = transaction.apartmentName.trim();
+
+          if (!apartmentNameValue) {
+            continue;
+          }
+
+          const key = normalizeApartmentName(apartmentNameValue);
+          const existing = apartmentMap.get(key);
+
+          if (!existing) {
+            apartmentMap.set(key, {
+              apartmentName: apartmentNameValue,
+              latestDealYear: transaction.dealYear,
+              latestDealMonth: transaction.dealMonth,
+              latestDealDay: transaction.dealDay,
+              transactionCount: 1,
+            });
+            continue;
+          }
+
+          existing.transactionCount += 1;
+
+          const currentDate = new Date(
+            Date.UTC(
+              transaction.dealYear,
+              transaction.dealMonth - 1,
+              transaction.dealDay
+            )
+          );
+
+          const existingDate = new Date(
+            Date.UTC(
+              existing.latestDealYear,
+              existing.latestDealMonth - 1,
+              existing.latestDealDay
+            )
+          );
+
+          if (currentDate.getTime() > existingDate.getTime()) {
+            existing.latestDealYear = transaction.dealYear;
+            existing.latestDealMonth = transaction.dealMonth;
+            existing.latestDealDay = transaction.dealDay;
+            existing.apartmentName = apartmentNameValue;
+          }
+        }
+      }
+
+      const apartments = Array.from(apartmentMap.values())
+        .sort((left, right) => {
+          const latestLeft = new Date(
+            Date.UTC(
+              left.latestDealYear,
+              left.latestDealMonth - 1,
+              left.latestDealDay
+            )
+          ).getTime();
+
+          const latestRight = new Date(
+            Date.UTC(
+              right.latestDealYear,
+              right.latestDealMonth - 1,
+              right.latestDealDay
+            )
+          ).getTime();
+
+          if (latestRight !== latestLeft) {
+            return latestRight - latestLeft;
+          }
+
+          if (right.transactionCount !== left.transactionCount) {
+            return right.transactionCount - left.transactionCount;
+          }
+
+          return left.apartmentName.localeCompare(
+            right.apartmentName,
+            "ko-KR"
+          );
+        })
+        .map((item) => item.apartmentName);
+
+      return NextResponse.json({
+        lawdCd,
+        legalDong,
+        searchedMonths: yearMonths.length,
+        apartmentCount: apartments.length,
+        matchedTransactionCount: apartments.length,
+        availableApartments: apartments,
+        apartments,
+      });
+    }
+
     if (mode === "areas") {
       if (!normalizedTargetDong) {
         return NextResponse.json(
@@ -196,42 +386,28 @@ export async function GET(request: NextRequest) {
       let matchedTransactionCount = 0;
 
       for (const dealYmd of yearMonths) {
-        const searchParams = new URLSearchParams({
-          serviceKey: rawServiceKey(serviceKey),
-          LAWD_CD: lawdCd,
-          DEAL_YMD: dealYmd,
-          pageNo: "1",
-          numOfRows: "9999",
-        });
+        let transactions: ReturnType<typeof readItems>;
 
-        const response = await fetch(`${ENDPOINT}?${searchParams.toString()}`, {
-          cache: "no-store",
-        });
-        const xml = await response.text();
-        const resultCode =
-          readTag(xml, "resultCode") || readTag(xml, "returnReasonCode");
-        const resultMessage =
-          readTag(xml, "resultMsg") ||
-          readTag(xml, "returnAuthMsg") ||
-          readTag(xml, "errMsg");
-
-        if (
-          !response.ok ||
-          (resultCode && !["00", "000", "0000"].includes(resultCode))
-        ) {
+        try {
+          ({ transactions } = await fetchMonthlyTransactions({
+            serviceKey,
+            lawdCd,
+            dealYmd,
+          }));
+        } catch (error) {
           return NextResponse.json(
             {
               error:
-                resultMessage ||
-                `국토교통부 API 요청 실패 (${response.status})`,
-              resultCode: resultCode || undefined,
+                error instanceof Error
+                  ? error.message
+                  : "국토교통부 API 요청에 실패했습니다.",
               failedYearMonth: dealYmd,
             },
             { status: 502 }
           );
         }
 
-        const matchedTransactions = readItems(xml).filter(
+        const matchedTransactions = transactions.filter(
           (transaction) =>
             normalizeApartmentName(transaction.apartmentName) ===
               normalizedTargetName &&
@@ -271,37 +447,32 @@ export async function GET(request: NextRequest) {
 
     for (let index = 0; index < yearMonths.length; index += 1) {
       const dealYmd = yearMonths[index];
-      const searchParams = new URLSearchParams({
-        serviceKey: rawServiceKey(serviceKey),
-        LAWD_CD: lawdCd,
-        DEAL_YMD: dealYmd,
-        pageNo: "1",
-        numOfRows: "9999",
-      });
 
-      const response = await fetch(`${ENDPOINT}?${searchParams.toString()}`, {
-        cache: "no-store",
-      });
-      const xml = await response.text();
-      const resultCode =
-        readTag(xml, "resultCode") || readTag(xml, "returnReasonCode");
-      const resultMessage =
-        readTag(xml, "resultMsg") ||
-        readTag(xml, "returnAuthMsg") ||
-        readTag(xml, "errMsg");
+      let xml = "";
+      let monthlyTransactions: ReturnType<typeof readItems>;
 
-      if (!response.ok || (resultCode && !["00", "000", "0000"].includes(resultCode))) {
+      try {
+        const result = await fetchMonthlyTransactions({
+          serviceKey,
+          lawdCd,
+          dealYmd,
+        });
+
+        xml = result.xml;
+        monthlyTransactions = result.transactions;
+      } catch (error) {
         return NextResponse.json(
           {
-            error: resultMessage || `국토교통부 API 요청 실패 (${response.status})`,
-            resultCode: resultCode || undefined,
+            error:
+              error instanceof Error
+                ? error.message
+                : "국토교통부 API 요청에 실패했습니다.",
             failedYearMonth: dealYmd,
           },
           { status: 502 }
         );
       }
 
-      const monthlyTransactions = readItems(xml);
       searchedYearMonths.push(dealYmd);
 
       const monthlyComplexTransactions = monthlyTransactions.filter(
@@ -311,6 +482,7 @@ export async function GET(request: NextRequest) {
           (!normalizedTargetDong ||
             normalizeLegalDong(transaction.legalDong) === normalizedTargetDong)
       );
+
       const monthlySameAreaTransactions = monthlyComplexTransactions.filter(
         (transaction) =>
           matchesExclusiveArea(transaction.exclusiveArea, exclusiveArea)
@@ -319,6 +491,7 @@ export async function GET(request: NextRequest) {
       if (index < months) {
         districtTotalCount12m +=
           Number(readTag(xml, "totalCount")) || monthlyTransactions.length;
+
         complexTransactions12m.push(...monthlyComplexTransactions);
         sameAreaTransactions12m.push(...monthlySameAreaTransactions);
       }
@@ -327,6 +500,7 @@ export async function GET(request: NextRequest) {
 
       const foundDuringRecentPeriod =
         index === months - 1 && sameAreaHistoryTransactions.length > 0;
+
       const foundDuringOlderPeriod =
         index >= months && monthlySameAreaTransactions.length > 0;
 
