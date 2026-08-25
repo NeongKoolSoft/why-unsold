@@ -107,6 +107,79 @@ function loadPortOneSdk() {
         return;
       }
 
+      let settled = false;
+
+      const finishSuccess = () => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        window.clearInterval(
+          readyCheckTimer
+        );
+        window.clearTimeout(
+          timeoutTimer
+        );
+        resolve();
+      };
+
+      const finishError = (
+        script?: HTMLScriptElement
+      ) => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        window.clearInterval(
+          readyCheckTimer
+        );
+        window.clearTimeout(
+          timeoutTimer
+        );
+
+        if (
+          script &&
+          script.parentNode
+        ) {
+          script.parentNode.removeChild(
+            script
+          );
+        }
+
+        reject(
+          new Error(
+            "포트원 결제 모듈을 불러오지 못했습니다. 잠시 후 다시 시도해주세요."
+          )
+        );
+      };
+
+      const readyCheckTimer =
+        window.setInterval(
+          () => {
+            if (window.PortOne) {
+              finishSuccess();
+            }
+          },
+          100
+        );
+
+      const timeoutTimer =
+        window.setTimeout(
+          () => {
+            const script =
+              document.querySelector<HTMLScriptElement>(
+                `script[src="${PORTONE_SDK_URL}"]`
+              );
+
+            finishError(
+              script ?? undefined
+            );
+          },
+          8000
+        );
+
       const existingScript =
         document.querySelector<HTMLScriptElement>(
           `script[src="${PORTONE_SDK_URL}"]`
@@ -115,17 +188,19 @@ function loadPortOneSdk() {
       if (existingScript) {
         existingScript.addEventListener(
           "load",
-          () => resolve(),
+          () => {
+            if (window.PortOne) {
+              finishSuccess();
+            }
+          },
           { once: true }
         );
 
         existingScript.addEventListener(
           "error",
           () =>
-            reject(
-              new Error(
-                "포트원 결제 모듈을 불러오지 못했습니다."
-              )
+            finishError(
+              existingScript
             ),
           { once: true }
         );
@@ -142,15 +217,24 @@ function loadPortOneSdk() {
         PORTONE_SDK_URL;
       script.async = true;
 
-      script.onload = () =>
-        resolve();
+      script.addEventListener(
+        "load",
+        () => {
+          if (window.PortOne) {
+            finishSuccess();
+          }
+        },
+        { once: true }
+      );
 
-      script.onerror = () =>
-        reject(
-          new Error(
-            "포트원 결제 모듈을 불러오지 못했습니다."
-          )
-        );
+      script.addEventListener(
+        "error",
+        () =>
+          finishError(
+            script
+          ),
+        { once: true }
+      );
 
       document.head.appendChild(
         script
