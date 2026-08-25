@@ -6,6 +6,11 @@ import type {
   Diagnosis,
 } from "../../report-types";
 
+import {
+  hashDiagnosis,
+  verifyAnalysisToken,
+} from "../../lib/payment-security";
+
 const GEMINI_API_BASE =
   "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -1465,6 +1470,8 @@ export async function POST(
   const body =
     requestBody as {
       diagnosis?: unknown;
+      paymentId?: unknown;
+      analysisToken?: unknown;
     };
 
   if (
@@ -1485,6 +1492,154 @@ export async function POST(
 
   const diagnosis =
     body.diagnosis;
+
+  const paymentId =
+    typeof body.paymentId === "string"
+      ? body.paymentId.trim()
+      : "";
+
+  const analysisToken =
+    typeof body.analysisToken === "string"
+      ? body.analysisToken.trim()
+      : "";
+
+  const isLocalRecoveryRequest =
+    process.env.NODE_ENV === "development" &&
+    request.headers.get(
+      "x-whyunsold-local-recovery"
+    ) === "1";
+
+  if (!isLocalRecoveryRequest) {
+    if (
+      !paymentId ||
+      !paymentId.startsWith(
+        "WHYUNSOLD"
+      ) ||
+      paymentId.length > 40
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "유효한 결제번호가 필요합니다.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    if (!analysisToken) {
+      return NextResponse.json(
+        {
+          error:
+            "분석 보안정보가 필요합니다.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    let verifiedAnalysis;
+
+    try {
+      verifiedAnalysis =
+        verifyAnalysisToken(
+          analysisToken
+        );
+    } catch (error) {
+      console.error(
+        "[analysis] analysis token verification error",
+        error
+      );
+
+      return NextResponse.json(
+        {
+          error:
+            "분석 보안정보를 검증하지 못했습니다.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    if (!verifiedAnalysis) {
+      return NextResponse.json(
+        {
+          error:
+            "분석 보안정보가 올바르지 않거나 만료되었습니다.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    if (
+      verifiedAnalysis.paymentId !==
+      paymentId
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "분석 보안정보의 결제번호가 일치하지 않습니다.",
+        },
+        {
+          status: 409,
+        }
+      );
+    }
+
+    if (
+      verifiedAnalysis.amount !==
+      20000
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "분석 보안정보의 결제금액이 올바르지 않습니다.",
+        },
+        {
+          status: 409,
+        }
+      );
+    }
+
+    let diagnosisHash: string;
+
+    try {
+      diagnosisHash =
+        hashDiagnosis(
+          diagnosis
+        );
+    } catch {
+      return NextResponse.json(
+        {
+          error:
+            "분석 정보의 형식이 올바르지 않습니다.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (
+      verifiedAnalysis.diagnosisHash !==
+      diagnosisHash
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "결제한 분석 정보와 현재 분석 정보가 일치하지 않습니다.",
+        },
+        {
+          status: 409,
+        }
+      );
+    }
+  }
 
   const endpoint =
     `${GEMINI_API_BASE}/` +

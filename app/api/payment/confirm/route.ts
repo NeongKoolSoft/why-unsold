@@ -3,6 +3,12 @@ import {
   NextResponse,
 } from "next/server";
 
+import {
+  createAnalysisToken,
+  hashDiagnosis,
+  verifyOrderToken,
+} from "../../../lib/payment-security";
+
 const PORTONE_API_BASE =
   "https://api.portone.io";
 
@@ -10,6 +16,8 @@ const REPORT_PRICE = 20000;
 
 type ConfirmRequestBody = {
   paymentId?: unknown;
+  orderToken?: unknown;
+  diagnosis?: unknown;
 };
 
 type PortOnePayment = {
@@ -91,10 +99,17 @@ export async function POST(
   }
 
   const paymentId =
-    typeof body.paymentId ===
-    "string"
+    typeof body.paymentId === "string"
       ? body.paymentId.trim()
       : "";
+
+  const orderToken =
+    typeof body.orderToken === "string"
+      ? body.orderToken.trim()
+      : "";
+
+  const diagnosis =
+    body.diagnosis;
 
   if (!paymentId) {
     return jsonError(
@@ -106,7 +121,8 @@ export async function POST(
   if (
     !paymentId.startsWith(
       "WHYUNSOLD"
-    )
+    ) ||
+    paymentId.length > 40
   ) {
     return jsonError(
       "올바르지 않은 결제번호입니다.",
@@ -114,6 +130,102 @@ export async function POST(
     );
   }
 
+  if (!orderToken) {
+    return jsonError(
+      "주문 보안정보를 확인할 수 없습니다.",
+      400
+    );
+  }
+
+  if (
+    !diagnosis ||
+    typeof diagnosis !== "object" ||
+    Array.isArray(diagnosis)
+  ) {
+    return jsonError(
+      "분석 정보를 확인할 수 없습니다.",
+      400
+    );
+  }
+
+  /*
+   * 결제 전 서버가 발급한 주문 토큰을 검증합니다.
+   * paymentId + 금액 + Diagnosis 해시가
+   * 결제 당시 값과 동일해야 합니다.
+   */
+  let verifiedOrder;
+
+  try {
+    verifiedOrder =
+      verifyOrderToken(
+        orderToken
+      );
+  } catch (error) {
+    console.error(
+      "[payment/confirm] order token verification error",
+      error
+    );
+
+    return jsonError(
+      "주문 보안정보를 검증하지 못했습니다.",
+      500
+    );
+  }
+
+  if (!verifiedOrder) {
+    return jsonError(
+      "주문 보안정보가 올바르지 않거나 만료되었습니다.",
+      409
+    );
+  }
+
+  if (
+    verifiedOrder.paymentId !==
+    paymentId
+  ) {
+    return jsonError(
+      "주문 결제번호가 일치하지 않습니다.",
+      409
+    );
+  }
+
+  if (
+    verifiedOrder.amount !==
+    REPORT_PRICE
+  ) {
+    return jsonError(
+      "주문 금액이 올바르지 않습니다.",
+      409
+    );
+  }
+
+  let diagnosisHash: string;
+
+  try {
+    diagnosisHash =
+      hashDiagnosis(
+        diagnosis
+      );
+  } catch {
+    return jsonError(
+      "분석 정보의 형식이 올바르지 않습니다.",
+      400
+    );
+  }
+
+  if (
+    verifiedOrder.diagnosisHash !==
+    diagnosisHash
+  ) {
+    return jsonError(
+      "결제 당시 분석 정보와 현재 분석 정보가 일치하지 않습니다.",
+      409
+    );
+  }
+
+  /*
+   * PortOne 서버에서 실제 결제 상태를 다시 조회합니다.
+   */
   let portOneResponse: Response;
 
   try {
@@ -171,8 +283,12 @@ export async function POST(
   const payment =
     responseBody as PortOnePayment;
 
+  /*
+   * 결제번호는 응답에 반드시 존재하고
+   * 요청한 paymentId와 동일해야 합니다.
+   */
   if (
-    payment.id &&
+    !payment.id ||
     payment.id !== paymentId
   ) {
     return jsonError(
@@ -181,8 +297,12 @@ export async function POST(
     );
   }
 
+  /*
+   * Store ID도 반드시 존재하고
+   * 우리 상점과 동일해야 합니다.
+   */
   if (
-    payment.storeId &&
+    !payment.storeId ||
     payment.storeId !==
       expectedStoreId
   ) {
@@ -192,6 +312,9 @@ export async function POST(
     );
   }
 
+  /*
+   * 실제 결제금액 확인
+   */
   if (
     payment.amount?.total !==
     REPORT_PRICE
@@ -206,17 +329,25 @@ export async function POST(
     );
   }
 
+  /*
+   * 통화도 누락 없이 KRW여야 합니다.
+   */
   if (
-    payment.currency &&
     payment.currency !== "KRW"
   ) {
     return jsonError(
       "결제 통화가 올바르지 않습니다.",
       409,
-      `확인된 결제 통화: ${payment.currency}`
+      `확인된 결제 통화: ${
+        payment.currency ??
+        "UNKNOWN"
+      }`
     );
   }
 
+  /*
+   * 실제 결제 완료 상태 확인
+   */
   if (
     payment.status !== "PAID"
   ) {
@@ -230,26 +361,58 @@ export async function POST(
     );
   }
 
+  /*
+   * 여기까지 통과한 경우에만
+   * 해당 Diagnosis에 대한 분석 토큰을 발급합니다.
+   */
+  let analysisToken: string;
+
+  try {
+    analysisToken =
+      createAnalysisToken(
+        paymentId,
+        REPORT_PRICE,
+        diagnosis
+      );
+  } catch (error) {
+    console.error(
+      "[payment/confirm] analysis token creation error",
+      error
+    );
+
+    return jsonError(
+      "분석 보안정보를 생성하지 못했습니다.",
+      500
+    );
+  }
+
   return NextResponse.json({
     ok: true,
+
+    analysisToken,
+
     payment: {
       paymentId:
-        payment.id ??
-        paymentId,
+        payment.id,
+
       transactionId:
         payment.transactionId ??
         null,
+
       status:
         payment.status,
+
       totalAmount:
         payment.amount.total,
+
       currency:
-        payment.currency ??
-        "KRW",
+        payment.currency,
+
       method:
         payment.paymentMethod
           ?.type ??
         null,
+
       paidAt:
         payment.paidAt ??
         null,

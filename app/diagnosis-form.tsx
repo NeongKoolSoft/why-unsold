@@ -42,6 +42,13 @@ type AnalysisApiResponse = {
   detail?: string;
 };
 
+type OrderTokenApiResponse = {
+  ok?: boolean;
+  orderToken?: string;
+  error?: string;
+  detail?: string;
+};
+
 type Region = {
   name: string;
   districts: readonly (readonly [string, string])[];
@@ -2110,6 +2117,46 @@ export default function DiagnosisForm() {
       const paymentId =
         createPaymentId();
 
+      const orderTokenResponse =
+        await fetch(
+          "/api/payment/order-token",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body:
+              JSON.stringify({
+                paymentId,
+                amount:
+                  REPORT_PRICE,
+                diagnosis:
+                  pendingDiagnosis,
+              }),
+            cache:
+              "no-store",
+          }
+        );
+
+      const orderTokenData =
+        (await orderTokenResponse.json()) as OrderTokenApiResponse;
+
+      if (
+        !orderTokenResponse.ok ||
+        !orderTokenData.ok ||
+        !orderTokenData.orderToken
+      ) {
+        throw new Error(
+          orderTokenData.detail ||
+            orderTokenData.error ||
+            "결제 보안 정보를 생성하지 못했습니다."
+        );
+      }
+
+      const orderToken =
+        orderTokenData.orderToken;
+
       sessionStorage.setItem(
         "whyunsold:last-payment-id",
         paymentId
@@ -2130,6 +2177,7 @@ export default function DiagnosisForm() {
             REPORT_PRICE,
           diagnosis:
             pendingDiagnosis,
+          orderToken,
           payMethod:
             selectedPayMethod,
           createdAt:

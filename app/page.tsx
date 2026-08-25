@@ -11,6 +11,7 @@ const businessInfo = {
   representative: "박경은",
   registrationNumber: "865-27-02154",
   address: "부산광역시 부산진구 부전로96번길 7, 401-S229호(부전동)",
+  phone: "010-3316-9786",
   mailOrderNumber: "",
 };
 
@@ -558,6 +559,8 @@ export default function Home() {
             </span>
 
             <span>사업장 주소 {businessInfo.address}</span>
+
+            <span>전화번호 {businessInfo.phone}</span>
 
             {businessInfo.mailOrderNumber && (
               <span>

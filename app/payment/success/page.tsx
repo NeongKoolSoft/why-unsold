@@ -16,12 +16,14 @@ type StoredOrder = {
   paymentId: string;
   amount: number;
   diagnosis: Diagnosis;
+  orderToken: string;
   payMethod?: "CARD" | "TRANSFER";
   createdAt: string;
 };
 
 type ConfirmResponse = {
   ok?: boolean;
+  analysisToken?: string;
   payment?: {
     paymentId?: string;
     transactionId?: string | null;
@@ -85,6 +87,12 @@ function PaymentSuccessContent() {
     );
 
   const [
+    paidAnalysisToken,
+    setPaidAnalysisToken,
+  ] =
+    useState("");
+
+  const [
     isAnalysisRetrying,
     setIsAnalysisRetrying,
   ] =
@@ -101,7 +109,8 @@ function PaymentSuccessContent() {
 
   async function runAnalysis(
     diagnosis: Diagnosis,
-    paymentId: string
+    paymentId: string,
+    analysisToken: string
   ) {
     const cachedResultKey =
       `whyunsold:result:${paymentId}`;
@@ -118,6 +127,8 @@ function PaymentSuccessContent() {
           body:
             JSON.stringify({
               diagnosis,
+              paymentId,
+              analysisToken,
             }),
           cache:
             "no-store",
@@ -188,6 +199,7 @@ function PaymentSuccessContent() {
   async function retryAnalysis() {
     if (
       !paidDiagnosis ||
+      !paidAnalysisToken ||
       isAnalysisRetrying
     ) {
       return;
@@ -223,7 +235,8 @@ function PaymentSuccessContent() {
     try {
       await runAnalysis(
         paidDiagnosis,
-        paymentId
+        paymentId,
+        paidAnalysisToken
       );
     } catch (error) {
       const errorMessage =
@@ -384,7 +397,10 @@ function PaymentSuccessContent() {
           paymentId ||
         storedOrder.amount !==
           REPORT_PRICE ||
-        !storedOrder.diagnosis
+        !storedOrder.diagnosis ||
+        typeof storedOrder.orderToken !==
+          "string" ||
+        !storedOrder.orderToken
       ) {
         setStatus("error");
         setMessage(
@@ -410,6 +426,10 @@ function PaymentSuccessContent() {
               body:
                 JSON.stringify({
                   paymentId,
+                  orderToken:
+                    storedOrder.orderToken,
+                  diagnosis:
+                    storedOrder.diagnosis,
                 }),
               cache:
                 "no-store",
@@ -421,7 +441,8 @@ function PaymentSuccessContent() {
 
         if (
           !confirmResponse.ok ||
-          !confirmData.ok
+          !confirmData.ok ||
+          !confirmData.analysisToken
         ) {
           throw new Error(
             confirmData.detail ||
@@ -440,6 +461,10 @@ function PaymentSuccessContent() {
           storedOrder.diagnosis
         );
 
+        setPaidAnalysisToken(
+          confirmData.analysisToken
+        );
+
         setMessage(
           "결제가 완료되었습니다. 매도 분석 리포트를 생성하고 있습니다."
         );
@@ -447,7 +472,8 @@ function PaymentSuccessContent() {
         try {
           await runAnalysis(
             storedOrder.diagnosis,
-            paymentId
+            paymentId,
+            confirmData.analysisToken
           );
         } catch (analysisError) {
           const analysisMessage =
