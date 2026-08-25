@@ -94,6 +94,8 @@ declare global {
 }
 
 const REPORT_PRICE = 20000;
+const PAYMENT_STARTED_KEY =
+  "whyunsold:payment-started";
 const PORTONE_SDK_URL =
   "https://cdn.portone.io/v2/browser-sdk.js";
 
@@ -1405,30 +1407,71 @@ export default function DiagnosisForm() {
     );
 
   useEffect(() => {
+    function getStoredPaymentId() {
+      return (
+        sessionStorage.getItem(
+          PAYMENT_STARTED_KEY
+        ) ??
+        localStorage.getItem(
+          PAYMENT_STARTED_KEY
+        ) ??
+        sessionStorage.getItem(
+          "whyunsold:last-payment-id"
+        ) ??
+        localStorage.getItem(
+          "whyunsold:last-payment-id"
+        ) ??
+        ""
+      );
+    }
+
+    function showStalePaymentPage() {
+      const paymentId =
+        getStoredPaymentId();
+
+      if (!paymentId) {
+        return;
+      }
+
+      setIsOpeningPayment(false);
+      setPendingDiagnosis(null);
+      setAgreedToPaymentTerms(false);
+      setStalePaymentId(
+        paymentId
+      );
+      setIsStalePaymentPage(true);
+    }
+
+    function isHistoryTraversal() {
+      const navigationEntry =
+        performance.getEntriesByType(
+          "navigation"
+        )[0] as
+          | PerformanceNavigationTiming
+          | undefined;
+
+      return (
+        navigationEntry?.type ===
+        "back_forward"
+      );
+    }
+
     function handlePageShow(
       event: PageTransitionEvent
     ) {
       if (
-        event.persisted &&
-        isOpeningPayment
+        event.persisted ||
+        isOpeningPayment ||
+        isHistoryTraversal()
       ) {
-        const lastPaymentId =
-          sessionStorage.getItem(
-            "whyunsold:last-payment-id"
-          ) ??
-          localStorage.getItem(
-            "whyunsold:last-payment-id"
-          ) ??
-          "";
-
-        setIsOpeningPayment(false);
-        setPendingDiagnosis(null);
-        setAgreedToPaymentTerms(false);
-        setStalePaymentId(
-          lastPaymentId
-        );
-        setIsStalePaymentPage(true);
+        showStalePaymentPage();
       }
+    }
+
+    if (
+      isHistoryTraversal()
+    ) {
+      showStalePaymentPage();
     }
 
     window.addEventListener(
@@ -2167,6 +2210,16 @@ export default function DiagnosisForm() {
         paymentId
       );
 
+      sessionStorage.setItem(
+        PAYMENT_STARTED_KEY,
+        paymentId
+      );
+
+      localStorage.setItem(
+        PAYMENT_STARTED_KEY,
+        paymentId
+      );
+
       const baseUrl =
         window.location.origin;
 
@@ -2234,6 +2287,14 @@ export default function DiagnosisForm() {
 
         localStorage.removeItem(
           "whyunsold:last-payment-id"
+        );
+
+        sessionStorage.removeItem(
+          PAYMENT_STARTED_KEY
+        );
+
+        localStorage.removeItem(
+          PAYMENT_STARTED_KEY
         );
 
         throw new Error(
@@ -3000,10 +3061,10 @@ export default function DiagnosisForm() {
           </h3>
 
           <p className="result-summary">
-            결제가 완료된 뒤 브라우저 뒤로가기로 돌아온
+            결제를 진행한 뒤 브라우저 뒤로가기로 돌아온
             화면에서는 다시 결제하지 마세요.
-            리포트를 다시 보려면 브라우저의 앞으로가기를
-            이용해주세요.
+            아래 버튼을 눌러 기존 결제 결과와
+            리포트를 다시 확인해주세요.
           </p>
 
           <button
