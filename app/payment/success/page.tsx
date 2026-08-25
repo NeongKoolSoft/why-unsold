@@ -488,51 +488,6 @@ function PaymentSuccessContent() {
     void completePayment();
   }, []);
 
-  useEffect(() => {
-    if (
-      status !== "success" ||
-      !result
-    ) {
-      return;
-    }
-
-    const reportHistoryState = {
-      whyunsoldReport: true,
-    };
-
-    /*
-     * 모바일 결제에서는 성공 페이지 바로 앞의 브라우저
-     * 히스토리에 카드사/PG 페이지가 남을 수 있습니다.
-     * 현재 리포트 페이지를 히스토리에 한 번 더 쌓아
-     * 뒤로가기를 눌러도 외부 결제 페이지로 돌아가지 않게 합니다.
-     */
-    window.history.pushState(
-      reportHistoryState,
-      "",
-      window.location.href
-    );
-
-    function keepReportPage() {
-      window.history.pushState(
-        reportHistoryState,
-        "",
-        window.location.href
-      );
-    }
-
-    window.addEventListener(
-      "popstate",
-      keepReportPage
-    );
-
-    return () => {
-      window.removeEventListener(
-        "popstate",
-        keepReportPage
-      );
-    };
-  }, [status, result]);
-
   if (
     status === "loading"
   ) {
