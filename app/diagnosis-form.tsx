@@ -1279,6 +1279,12 @@ export default function DiagnosisForm() {
     useState(false);
 
   const [
+    stalePaymentId,
+    setStalePaymentId,
+  ] =
+    useState("");
+
+  const [
     selectedPayMethod,
     setSelectedPayMethod,
   ] =
@@ -1399,9 +1405,21 @@ export default function DiagnosisForm() {
         event.persisted &&
         isOpeningPayment
       ) {
+        const lastPaymentId =
+          sessionStorage.getItem(
+            "whyunsold:last-payment-id"
+          ) ??
+          localStorage.getItem(
+            "whyunsold:last-payment-id"
+          ) ??
+          "";
+
         setIsOpeningPayment(false);
         setPendingDiagnosis(null);
         setAgreedToPaymentTerms(false);
+        setStalePaymentId(
+          lastPaymentId
+        );
         setIsStalePaymentPage(true);
       }
     }
@@ -1464,6 +1482,7 @@ export default function DiagnosisForm() {
     setResult(null);
     setPendingDiagnosis(null);
     setAgreedToPaymentTerms(false);
+    setStalePaymentId("");
     setIsStalePaymentPage(false);
     setReportError("");
 
@@ -1834,6 +1853,7 @@ export default function DiagnosisForm() {
     setIsPreparingPayment(
       true
     );
+    setStalePaymentId("");
     setIsStalePaymentPage(false);
     setLookupError("");
     setReportError("");
@@ -2090,6 +2110,16 @@ export default function DiagnosisForm() {
       const paymentId =
         createPaymentId();
 
+      sessionStorage.setItem(
+        "whyunsold:last-payment-id",
+        paymentId
+      );
+
+      localStorage.setItem(
+        "whyunsold:last-payment-id",
+        paymentId
+      );
+
       const baseUrl =
         window.location.origin;
 
@@ -2148,6 +2178,14 @@ export default function DiagnosisForm() {
 
         localStorage.removeItem(
           `whyunsold:order:${paymentId}`
+        );
+
+        sessionStorage.removeItem(
+          "whyunsold:last-payment-id"
+        );
+
+        localStorage.removeItem(
+          "whyunsold:last-payment-id"
         );
 
         throw new Error(
@@ -2923,12 +2961,26 @@ export default function DiagnosisForm() {
           <button
             className="submit-button"
             type="button"
-            onClick={() =>
-              window.history.forward()
-            }
+            disabled={!stalePaymentId}
+            onClick={() => {
+              if (!stalePaymentId) {
+                return;
+              }
+
+              window.location.href =
+                `/payment/success?paymentId=${encodeURIComponent(
+                  stalePaymentId
+                )}`;
+            }}
             style={{
               marginTop: 22,
               width: "100%",
+              cursor: stalePaymentId
+                ? "pointer"
+                : "not-allowed",
+              opacity: stalePaymentId
+                ? 1
+                : 0.55,
             }}
           >
             리포트 화면으로 돌아가기
@@ -2936,6 +2988,19 @@ export default function DiagnosisForm() {
               →
             </span>
           </button>
+
+          {!stalePaymentId && (
+            <p
+              className="submit-note"
+              style={{
+                marginTop: 14,
+              }}
+            >
+              이전 결제번호를 찾지 못했습니다.
+              브라우저의 앞으로가기를 이용해
+              리포트 화면으로 돌아가주세요.
+            </p>
+          )}
         </div>
       )}
 
