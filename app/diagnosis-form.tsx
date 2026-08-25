@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import DetailReport from "./detail-report";
 import type {
   AiDetailAnalysis,
@@ -1273,6 +1273,12 @@ export default function DiagnosisForm() {
     useState(false);
 
   const [
+    isStalePaymentPage,
+    setIsStalePaymentPage,
+  ] =
+    useState(false);
+
+  const [
     selectedPayMethod,
     setSelectedPayMethod,
   ] =
@@ -1385,6 +1391,34 @@ export default function DiagnosisForm() {
       null
     );
 
+  useEffect(() => {
+    function handlePageShow(
+      event: PageTransitionEvent
+    ) {
+      if (
+        event.persisted &&
+        isOpeningPayment
+      ) {
+        setIsOpeningPayment(false);
+        setPendingDiagnosis(null);
+        setAgreedToPaymentTerms(false);
+        setIsStalePaymentPage(true);
+      }
+    }
+
+    window.addEventListener(
+      "pageshow",
+      handlePageShow
+    );
+
+    return () => {
+      window.removeEventListener(
+        "pageshow",
+        handlePageShow
+      );
+    };
+  }, [isOpeningPayment]);
+
   const selectedRegion =
     REGIONS.find(
       (region) =>
@@ -1430,6 +1464,7 @@ export default function DiagnosisForm() {
     setResult(null);
     setPendingDiagnosis(null);
     setAgreedToPaymentTerms(false);
+    setIsStalePaymentPage(false);
     setReportError("");
 
     window.scrollTo({
@@ -1799,6 +1834,7 @@ export default function DiagnosisForm() {
     setIsPreparingPayment(
       true
     );
+    setIsStalePaymentPage(false);
     setLookupError("");
     setReportError("");
     setResult(null);
@@ -2858,6 +2894,50 @@ export default function DiagnosisForm() {
           거래 성사를 보장하지 않습니다.
         </p>
       </form>
+
+      {isStalePaymentPage && (
+        <div
+          className="analysis-result"
+          style={{
+            marginTop: 40,
+            paddingTop: 42,
+            paddingBottom: 42,
+          }}
+          role="status"
+        >
+          <span className="result-kicker">
+            PAYMENT
+          </span>
+
+          <h3>
+            이미 결제를 진행한 이전 화면입니다.
+          </h3>
+
+          <p className="result-summary">
+            결제가 완료된 뒤 브라우저 뒤로가기로 돌아온
+            화면에서는 다시 결제하지 마세요.
+            리포트를 다시 보려면 브라우저의 앞으로가기를
+            이용해주세요.
+          </p>
+
+          <button
+            className="submit-button"
+            type="button"
+            onClick={() =>
+              window.history.forward()
+            }
+            style={{
+              marginTop: 22,
+              width: "100%",
+            }}
+          >
+            리포트 화면으로 돌아가기
+            <span aria-hidden="true">
+              →
+            </span>
+          </button>
+        </div>
+      )}
 
       {pendingDiagnosis &&
         !isGeneratingReport && (
