@@ -538,6 +538,7 @@ function PaymentSuccessContent() {
           </p>
 
           <h1
+            className="payment-success-loading-title"
             style={{
               margin:
                 "18px 0 0",
@@ -549,10 +550,12 @@ function PaymentSuccessContent() {
                 "-0.04em",
             }}
           >
-            리포트를 생성하고 있습니다.
+            <span>리포트를 생성하고</span>
+            <span>있습니다.</span>
           </h1>
 
           <p
+            className="payment-success-loading-description"
             style={{
               margin:
                 "18px 0 0",
@@ -563,11 +566,34 @@ function PaymentSuccessContent() {
                 1.8,
             }}
           >
-            {message}
-            <br />
-            매도 상황을 분석하고 있으니
-            잠시만 기다려주세요.
+            <span>{message}</span>
+            <span>
+              매도 상황을 분석하고 있으니 잠시만 기다려주세요.
+            </span>
           </p>
+
+          <style jsx>{`
+            .payment-success-loading-title span,
+            .payment-success-loading-description span {
+              display: block;
+            }
+
+            @media (max-width: 680px) {
+              .payment-success-loading-title {
+                font-size: 30px !important;
+                line-height: 1.35 !important;
+              }
+
+              .payment-success-loading-description {
+                font-size: 14px !important;
+                line-height: 1.75 !important;
+              }
+
+              .payment-success-loading-description span + span {
+                margin-top: 8px;
+              }
+            }
+          `}</style>
         </section>
       </main>
     );
