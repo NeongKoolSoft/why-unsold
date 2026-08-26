@@ -12,7 +12,7 @@ const businessInfo = {
   registrationNumber: "865-27-02154",
   address: "부산광역시 부산진구 부전로96번길 7, 401-S229호(부전동)",
   phone: "010-3316-9786",
-  mailOrderNumber: "",
+  mailOrderNumber: "2026-부산진구-1211",
 };
 
 const hasBusinessInfo =
