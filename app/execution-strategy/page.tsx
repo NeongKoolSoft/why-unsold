@@ -1,6 +1,13 @@
 import ExecutionStrategyForm from "./execution-strategy-form";
+import PreviewSampleLauncher from "./preview-sample-launcher";
 
 export default function ExecutionStrategyPage() {
+  const allowPreviewSample =
+    process.env.VERCEL_ENV ===
+      "preview" ||
+    process.env.NODE_ENV ===
+      "development";
+
   return (
     <main
       style={{
@@ -48,6 +55,10 @@ export default function ExecutionStrategyPage() {
           V2 PREVIEW
         </span>
       </nav>
+
+      {allowPreviewSample && (
+        <PreviewSampleLauncher />
+      )}
 
       <ExecutionStrategyForm />
     </main>
