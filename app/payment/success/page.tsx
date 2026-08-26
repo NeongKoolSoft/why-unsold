@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import DetailReport from "../../detail-report";
+import StrategyEntryCard from "../../execution-strategy/strategy-entry-card";
 import type {
   AiDetailAnalysis,
   Diagnosis,
@@ -852,6 +853,10 @@ function PaymentSuccessContent() {
             window.location.href =
               "/#application";
           }}
+        />
+
+        <StrategyEntryCard
+          diagnosis={result}
         />
       </div>
     </main>
