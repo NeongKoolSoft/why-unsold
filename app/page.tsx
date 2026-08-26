@@ -34,6 +34,19 @@ export default function Home() {
             ?
           </span>
           <span>왜 안 팔릴까</span>
+          <span
+            style={{
+              marginLeft: "8px",
+              padding: "3px 7px",
+              border: "1px solid currentColor",
+              borderRadius: "999px",
+              fontSize: "10px",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+            }}
+          >
+            V2 PREVIEW
+          </span>
         </a>
 
         <a
