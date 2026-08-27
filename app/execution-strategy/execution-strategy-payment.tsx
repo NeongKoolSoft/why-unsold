@@ -16,6 +16,10 @@ import {
   EXECUTION_STRATEGY_PRODUCT,
 } from "../lib/execution-strategy-config";
 
+import {
+  loadPortOneSdk,
+} from "../lib/portone-browser";
+
 type PaymentMethod =
   | "CARD"
   | "TRANSFER";
@@ -159,16 +163,6 @@ export default function ExecutionStrategyPayment({
       return;
     }
 
-    const portOne =
-      window.PortOne;
-
-    if (!portOne) {
-      setError(
-        "결제 모듈을 불러오지 못했습니다. 잠시 후 다시 시도해주세요."
-      );
-      return;
-    }
-
     setIsPaying(true);
     setError("");
 
@@ -179,6 +173,17 @@ export default function ExecutionStrategyPayment({
       `whyunsold:strategy-order:${paymentId}`;
 
     try {
+      await loadPortOneSdk();
+
+      const portOne =
+          window.PortOne;
+
+      if (!portOne) {
+          throw new Error(
+          "결제 모듈을 불러오지 못했습니다. 잠시 후 다시 시도해주세요."
+          );
+      }
+
       const tokenResponse =
         await fetch(
           "/api/execution-strategy/order-token",
