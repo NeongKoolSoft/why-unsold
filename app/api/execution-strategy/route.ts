@@ -2491,13 +2491,13 @@ export async function POST(
                     ? {
                         thinkingConfig: {
                           thinkingLevel:
-                            "MEDIUM",
+                            "LOW",
                         },
                       }
                     : {}),
 
                   maxOutputTokens:
-                    20000,
+                    32000,
 
                   responseMimeType:
                     "application/json",
