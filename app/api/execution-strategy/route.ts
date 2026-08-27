@@ -2288,6 +2288,24 @@ export async function POST(
           parsed
         )
       ) {
+
+        if (
+          process.env.VERCEL_ENV ===
+            "preview" &&
+          diagnosis.reportId ===
+            "PREVIEW-SAMPLE-001" &&
+          attempt === 1
+        ) {
+          console.error(
+            "[execution-strategy] preview shape mismatch payload",
+            JSON.stringify(
+              parsed,
+              null,
+              2
+            )
+          );
+        }
+
         console.error(
           "[execution-strategy] response shape mismatch",
           {
