@@ -2163,8 +2163,8 @@ export async function POST(
                   },
                 ],
 
-                generationConfig:
-                  model.startsWith(
+                generationConfig: {
+                  ...(model.startsWith(
                     "gemini-3"
                   )
                     ? {
@@ -2172,30 +2172,15 @@ export async function POST(
                           thinkingLevel:
                             "MEDIUM",
                         },
-
-                        maxOutputTokens:
-                          20000,
-
-                        responseFormat: {
-                          text: {
-                            mimeType:
-                              "APPLICATION_JSON",
-
-                            schema:
-                              executionStrategySchema,
-                          },
-                        },
                       }
-                    : {
-                        maxOutputTokens:
-                          20000,
+                    : {}),
 
-                        responseMimeType:
-                          "application/json",
+                  maxOutputTokens:
+                    20000,
 
-                        responseSchema:
-                          executionStrategySchema,
-                      },
+                  responseMimeType:
+                    "application/json",
+                },
               }),
 
             cache:
