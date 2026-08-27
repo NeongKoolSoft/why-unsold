@@ -616,6 +616,316 @@ const executionStrategySchema = {
     false,
 };
 
+const executionStrategyEnvelopeSchema = {
+  type:
+    "object",
+
+  properties: {
+    objective: {
+      type:
+        "object",
+
+      properties: {
+        headline: {
+          type:
+            "string",
+        },
+
+        priority: {
+          type:
+            "string",
+
+          enum: [
+            "speed",
+            "balance",
+            "price_defense",
+          ],
+        },
+
+        summary: {
+          type:
+            "string",
+        },
+
+        successSignals: {
+          type:
+            "array",
+
+          minItems:
+            3,
+
+          maxItems:
+            3,
+
+          items: {
+            type:
+              "string",
+          },
+        },
+
+        constraintConflicts: {
+          type:
+            "array",
+
+          minItems:
+            0,
+
+          maxItems:
+            3,
+
+          items: {
+            type:
+              "string",
+          },
+        },
+      },
+
+      required: [
+        "headline",
+        "priority",
+        "summary",
+        "successSignals",
+        "constraintConflicts",
+      ],
+
+      additionalProperties:
+        false,
+    },
+
+    recommendedStrategy: {
+      type:
+        "object",
+
+      properties: {
+        primaryFocus: {
+          type:
+            "string",
+
+          enum: [
+            "price",
+            "liquidity",
+            "exposure",
+            "conversion",
+            "condition",
+          ],
+        },
+
+        priceStance: {
+          type:
+            "string",
+
+          enum: [
+            "maintain",
+            "conditional_adjust",
+            "adjust_within_limit",
+          ],
+        },
+
+        headline: {
+          type:
+            "string",
+        },
+
+        summary: {
+          type:
+            "string",
+        },
+
+        reasons: {
+          type:
+            "array",
+
+          minItems:
+            3,
+
+          maxItems:
+            3,
+
+          items: {
+            type:
+              "string",
+          },
+        },
+
+        maintainConditions: {
+          type:
+            "array",
+
+          minItems:
+            2,
+
+          maxItems:
+            2,
+
+          items: {
+            type:
+              "string",
+          },
+        },
+
+        changeConditions: {
+          type:
+            "array",
+
+          minItems:
+            2,
+
+          maxItems:
+            2,
+
+          items: {
+            type:
+              "string",
+          },
+        },
+
+        avoidActions: {
+          type:
+            "array",
+
+          minItems:
+            2,
+
+          maxItems:
+            2,
+
+          items: {
+            type:
+              "string",
+          },
+        },
+      },
+
+      required: [
+        "primaryFocus",
+        "priceStance",
+        "headline",
+        "summary",
+        "reasons",
+        "maintainConditions",
+        "changeConditions",
+        "avoidActions",
+      ],
+
+      additionalProperties:
+        false,
+    },
+
+    weeklyPlans: {
+      type:
+        "array",
+
+      minItems:
+        4,
+
+      maxItems:
+        4,
+
+      items: {
+        type:
+          "object",
+      },
+    },
+
+    responseBranches: {
+      type:
+        "array",
+
+      minItems:
+        4,
+
+      maxItems:
+        4,
+
+      items: {
+        type:
+          "object",
+      },
+    },
+
+    checklistGroups: {
+      type:
+        "array",
+
+      minItems:
+        4,
+
+      maxItems:
+        4,
+
+      items: {
+        type:
+          "object",
+      },
+    },
+
+    day30Decision: {
+      type:
+        "object",
+
+      properties: {
+        summary: {
+          type:
+            "string",
+        },
+
+        outcomes: {
+          type:
+            "array",
+
+          minItems:
+            3,
+
+          maxItems:
+            3,
+
+          items: {
+            type:
+              "object",
+          },
+        },
+      },
+
+      required: [
+        "summary",
+        "outcomes",
+      ],
+
+      additionalProperties:
+        false,
+    },
+
+    limitations: {
+      type:
+        "array",
+
+      minItems:
+        2,
+
+      maxItems:
+        2,
+
+      items: {
+        type:
+          "string",
+      },
+    },
+  },
+
+  required: [
+    "objective",
+    "recommendedStrategy",
+    "weeklyPlans",
+    "responseBranches",
+    "checklistGroups",
+    "day30Decision",
+    "limitations",
+  ],
+
+  additionalProperties:
+    false,
+} as const;
+
 const SYSTEM_PROMPT = `
 당신은 아파트 매도진단 결과를
 30일 동안 실행할 수 있는 계획으로 편집하는
@@ -2185,7 +2495,7 @@ export async function POST(
                     "application/json",
 
                   responseJsonSchema:
-                    executionStrategySchema,
+                    executionStrategyEnvelopeSchema,
                 },
               }),
 
