@@ -746,6 +746,31 @@ export default function DetailReport({
             </div>
           </div>
 
+          <footer className="report-page-footer">
+            <span>
+              데이터 + AI 기반 매도 분석
+            </span>
+
+            <span>
+              거래 성사를 보장하지 않습니다.
+            </span>
+          </footer>
+        </article>
+
+        {/* =====================================================
+            PAGE 2
+        ====================================================== */}
+        <article className="detail-report-page">
+          <header className="report-page-header">
+            <div className="report-page-section-name">
+              아파트 매도 분석 리포트
+            </div>
+
+            <span className="report-page-number">
+              ANALYSIS REPORT
+            </span>
+          </header>
+
           <section className="report-section report-section-premium detail-section">
             <div className="report-section-heading">
               <span className="report-section-number">
@@ -798,7 +823,7 @@ export default function DetailReport({
         </article>
 
         {/* =====================================================
-            PAGE 2
+            PAGE 3
         ====================================================== */}
         <article className="detail-report-page">
           <header className="report-page-header">
@@ -943,6 +968,31 @@ export default function DetailReport({
               </div>
             </div>
           </section>
+
+          <footer className="report-page-footer">
+            <span>
+              데이터 + AI 기반 매도 분석
+            </span>
+
+            <span>
+              거래 성사를 보장하지 않습니다.
+            </span>
+          </footer>
+        </article>
+
+        {/* =====================================================
+            PAGE 4
+        ====================================================== */}
+        <article className="detail-report-page">
+          <header className="report-page-header">
+            <div className="report-page-section-name">
+              아파트 매도 분석 리포트
+            </div>
+
+            <span className="report-page-number">
+              ANALYSIS REPORT
+            </span>
+          </header>
 
           <section className="report-section report-section-premium detail-section">
             <div className="report-section-heading">
@@ -1103,7 +1153,7 @@ export default function DetailReport({
         </article>
 
         {/* =====================================================
-            PAGE 3
+            PAGE 5
         ====================================================== */}
         <article className="detail-report-page">
           <header className="report-page-header">
@@ -1295,7 +1345,7 @@ export default function DetailReport({
         </article>
 
         {/* =====================================================
-            PAGE 4
+            PAGE 6
         ====================================================== */}
         <article className="detail-report-page">
           <header className="report-page-header">
@@ -1437,7 +1487,7 @@ export default function DetailReport({
         </article>
 
         {/* =====================================================
-            PAGE 5
+            PAGE 7
         ====================================================== */}
         <article className="detail-report-page">
           <header className="report-page-header">
@@ -1618,6 +1668,87 @@ export default function DetailReport({
           종료하기
         </button>
       </div>
+
+      <style jsx global>{`
+        @page {
+          size: A4;
+          margin: 0;
+        }
+
+        @media print {
+          html,
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+          }
+
+          body * {
+            visibility: hidden !important;
+          }
+
+          .detail-report,
+          .detail-report * {
+            visibility: visible !important;
+          }
+
+          .detail-report {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            display: block !important;
+            width: 210mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+          }
+
+          .report-controls {
+            display: none !important;
+          }
+
+          .detail-report-page {
+            position: relative !important;
+            width: 210mm !important;
+            min-height: 297mm !important;
+            margin: 0 !important;
+            padding: 10mm 14mm 17mm !important;
+            box-sizing: border-box !important;
+            border: 0 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid-page !important;
+            page-break-after: always !important;
+            break-after: page !important;
+          }
+
+          .detail-report-page:last-child {
+            page-break-after: auto !important;
+            break-after: auto !important;
+          }
+
+          .detail-report-page .detail-section {
+            margin-top: 20px !important;
+          }
+
+          .detail-report-page .report-cause-box,
+          .detail-report-page .report-limits {
+            margin-top: 20px !important;
+          }
+
+          .detail-report-page .evidence-row,
+          .detail-report-page .liquidity-row,
+          .detail-report-page .detail-timeline-row {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+
+          .report-page-footer {
+            right: 14mm !important;
+            bottom: 7mm !important;
+            left: 14mm !important;
+          }
+        }
+      `}</style>
     </>
   );
 }
