@@ -32,6 +32,8 @@ import {
   validateExecutionStrategyConstraints,
 } from "../lib/execution-strategy-validation";
 
+import ExecutionStrategyPayment from "./execution-strategy-payment";
+
 const pageStyle: CSSProperties = {
   width: "min(920px, calc(100% - 32px))",
   margin: "0 auto",
@@ -904,17 +906,14 @@ export default function ExecutionStrategyForm() {
             <li>30일 종료 판단 기준</li>
           </ul>
 
-          <p
-            style={{
-              margin: "20px 0 0",
-              color: "#66736c",
-              fontSize: 13,
-              lineHeight: 1.7,
-            }}
-          >
-            다음 개발 단계에서 이 영역에 카드·계좌이체
-            결제를 연결합니다.
-          </p>
+          <ExecutionStrategyPayment
+            diagnosis={
+              diagnosis
+            }
+            executionInput={
+              confirmedInput
+            }
+          />
         </section>
       )}
     </section>
