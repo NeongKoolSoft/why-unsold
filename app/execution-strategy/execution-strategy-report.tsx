@@ -202,7 +202,7 @@ export default function ExecutionStrategyReport({
         {/* PAGE 1 */}
         <article className="strategy-page strategy-cover-page">
           <ReportHeader
-            page="01 / 11"
+            page="01 / 13"
             title="현재 상태와 30일 목표"
           />
 
@@ -298,6 +298,20 @@ export default function ExecutionStrategyReport({
             </div>
           </section>
 
+          <ReportFooter
+            strategyId={
+              strategy.strategyId
+            }
+          />
+        </article>
+
+        {/* PAGE 2 */}
+        <article className="strategy-page">
+          <ReportHeader
+            page="02 / 13"
+            title="30일 목표와 성공 신호"
+          />
+
           <section className="strategy-section">
             <SectionTitle
               number="01"
@@ -369,10 +383,10 @@ export default function ExecutionStrategyReport({
           />
         </article>
 
-        {/* PAGE 2 */}
+        {/* PAGE 3 */}
         <article className="strategy-page">
           <ReportHeader
-            page="02 / 11"
+            page="03 / 13"
             title="권장 전략"
           />
 
@@ -449,49 +463,71 @@ export default function ExecutionStrategyReport({
             </ol>
           </section>
 
-          <section className="strategy-two-column">
-            <div className="strategy-condition-card maintain">
-              <span>
-                전략 유지 조건
-              </span>
+          <ReportFooter
+            strategyId={
+              strategy.strategyId
+            }
+          />
+        </article>
 
-              <ul>
-                {recommended
-                  .maintainConditions
-                  .map(
-                    (condition) => (
-                      <li
-                        key={
-                          condition
-                        }
-                      >
-                        {condition}
-                      </li>
-                    )
-                  )}
-              </ul>
-            </div>
+        {/* PAGE 4 */}
+        <article className="strategy-page">
+          <ReportHeader
+            page="04 / 13"
+            title="전략 유지·변경 조건"
+          />
 
-            <div className="strategy-condition-card change">
-              <span>
-                전략 변경 조건
-              </span>
+          <section className="strategy-section">
+            <SectionTitle
+              number="03"
+              title="전략을 유지하거나 변경할 때"
+              description="30일 동안 관찰한 반응을 기준으로 다음 행동을 결정합니다."
+            />
 
-              <ul>
-                {recommended
-                  .changeConditions
-                  .map(
-                    (condition) => (
-                      <li
-                        key={
-                          condition
-                        }
-                      >
-                        {condition}
-                      </li>
-                    )
-                  )}
-              </ul>
+            <div className="strategy-two-column">
+              <div className="strategy-condition-card maintain">
+                <span>
+                  전략 유지 조건
+                </span>
+
+                <ul>
+                  {recommended
+                    .maintainConditions
+                    .map(
+                      (condition) => (
+                        <li
+                          key={
+                            condition
+                          }
+                        >
+                          {condition}
+                        </li>
+                      )
+                    )}
+                </ul>
+              </div>
+
+              <div className="strategy-condition-card change">
+                <span>
+                  전략 변경 조건
+                </span>
+
+                <ul>
+                  {recommended
+                    .changeConditions
+                    .map(
+                      (condition) => (
+                        <li
+                          key={
+                            condition
+                          }
+                        >
+                          {condition}
+                        </li>
+                      )
+                    )}
+                </ul>
+              </div>
             </div>
           </section>
 
@@ -524,7 +560,7 @@ export default function ExecutionStrategyReport({
           />
         </article>
 
-        {/* PAGES 3-6: WEEK 1-4 */}
+        {/* PAGES 5-8: WEEK 1-4 */}
         {strategy.weeklyPlans.map(
           (
             week,
@@ -538,11 +574,11 @@ export default function ExecutionStrategyReport({
             >
               <ReportHeader
                 page={`${String(
-                  weekIndex + 3
+                  weekIndex + 5
                 ).padStart(
                   2,
                   "0"
-                )} / 11`}
+                )} / 13`}
                 title={`${weekIndex + 1}주차 실행계획`}
               />
 
@@ -711,7 +747,7 @@ export default function ExecutionStrategyReport({
           )
         )}
 
-        {/* PAGES 7-8: RESPONSE BRANCHES */}
+        {/* PAGES 9-10: RESPONSE BRANCHES */}
         {branchGroups.map(
           (
             branches,
@@ -723,11 +759,11 @@ export default function ExecutionStrategyReport({
             >
               <ReportHeader
                 page={`${String(
-                  groupIndex + 7
+                  groupIndex + 9
                 ).padStart(
                   2,
                   "0"
-                )} / 11`}
+                )} / 13`}
                 title="매수 반응별 행동 분기"
               />
 
@@ -832,10 +868,10 @@ export default function ExecutionStrategyReport({
           )
         )}
 
-        {/* PAGE 9 */}
+        {/* PAGE 11 */}
         <article className="strategy-page">
           <ReportHeader
-            page="09 / 11"
+            page="11 / 13"
             title="실전 점검표"
           />
 
@@ -906,10 +942,10 @@ export default function ExecutionStrategyReport({
           />
         </article>
 
-        {/* PAGE 10 */}
+        {/* PAGE 12 */}
         <article className="strategy-page">
           <ReportHeader
-            page="10 / 11"
+            page="12 / 13"
             title="변화 기록표"
           />
 
@@ -1008,10 +1044,10 @@ export default function ExecutionStrategyReport({
           />
         </article>
 
-        {/* PAGE 11 */}
+        {/* PAGE 13 */}
         <article className="strategy-page">
           <ReportHeader
-            page="11 / 11"
+            page="13 / 13"
             title="30일 종료 판단"
           />
 
@@ -1093,7 +1129,7 @@ export default function ExecutionStrategyReport({
         </article>
       </div>
 
-      <style jsx>{`
+      <style jsx global>{`
         .strategy-report-shell {
           min-height: 100vh;
           padding: 28px 0 72px;
@@ -1770,14 +1806,14 @@ export default function ExecutionStrategyReport({
         }
 
         @media print {
-          :global(html),
-          :global(body) {
+          html,
+          body {
             margin: 0 !important;
             padding: 0 !important;
             background: #fff !important;
           }
 
-          :global(body *) {
+          body * {
             visibility: hidden !important;
           }
 
@@ -1806,18 +1842,17 @@ export default function ExecutionStrategyReport({
 
           .strategy-page {
             width: 210mm;
-            min-height: 297mm;
+            min-height: 296mm;
             margin: 0;
             padding: 11mm 12mm 18mm;
             border: 0;
-            page-break-inside: avoid;
-            break-inside: avoid-page;
-            page-break-after: always;
+            page-break-inside: auto;
+            break-inside: auto;
+            page-break-after: auto;
             break-after: page;
           }
 
           .strategy-page:last-child {
-            page-break-after: auto;
             break-after: auto;
           }
 
