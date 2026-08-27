@@ -2183,6 +2183,9 @@ export async function POST(
 
                   responseMimeType:
                     "application/json",
+
+                  responseJsonSchema:
+                    executionStrategySchema,
                 },
               }),
 
