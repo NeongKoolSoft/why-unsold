@@ -1887,6 +1887,50 @@ export default function ExecutionStrategyReport({
           .strategy-section {
             margin-top: 8mm;
           }
+
+          /*
+           * 2~4주차의 마지막 "다음 단계 조건"이 별도 용지로
+           * 넘어가지 않도록 인쇄할 때만 주차 카드 간격을 줄입니다.
+           * 화면에서 보이는 카드 디자인에는 영향을 주지 않습니다.
+           */
+          .strategy-week-card-single {
+            margin-top: 16px;
+            padding: 18px;
+          }
+
+          .week-columns {
+            margin-top: 14px;
+          }
+
+          .week-columns > div,
+          .week-actions {
+            padding: 14px;
+          }
+
+          .week-actions {
+            margin-top: 10px;
+          }
+
+          .week-action {
+            gap: 10px;
+            padding: 8px 0;
+          }
+
+          .week-action p {
+            margin-top: 4px;
+            line-height: 1.5;
+          }
+
+          .week-action small {
+            margin-top: 4px;
+            line-height: 1.4;
+          }
+
+          .next-condition {
+            margin-top: 10px;
+            padding: 10px 12px;
+            line-height: 1.5;
+          }
         }
       `}</style>
     </div>
