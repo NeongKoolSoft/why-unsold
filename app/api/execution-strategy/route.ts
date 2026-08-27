@@ -2163,25 +2163,39 @@ export async function POST(
                   },
                 ],
 
-                generationConfig: {
-                  thinkingConfig: {
-                    thinkingLevel:
-                      "MEDIUM",
-                  },
+                generationConfig:
+                  model.startsWith(
+                    "gemini-3"
+                  )
+                    ? {
+                        thinkingConfig: {
+                          thinkingLevel:
+                            "MEDIUM",
+                        },
 
-                  maxOutputTokens:
-                    20000,
+                        maxOutputTokens:
+                          20000,
 
-                  responseFormat: {
-                    text: {
-                      mimeType:
-                        "APPLICATION_JSON",
+                        responseFormat: {
+                          text: {
+                            mimeType:
+                              "APPLICATION_JSON",
 
-                      schema:
-                        executionStrategySchema,
-                    },
-                  },
-                },
+                            schema:
+                              executionStrategySchema,
+                          },
+                        },
+                      }
+                    : {
+                        maxOutputTokens:
+                          20000,
+
+                        responseMimeType:
+                          "application/json",
+
+                        responseSchema:
+                          executionStrategySchema,
+                      },
               }),
 
             cache:
@@ -2194,6 +2208,22 @@ export async function POST(
           GeminiResponse;
 
       if (!response.ok) {
+        console.error(
+          "[execution-strategy] Gemini API error",
+          {
+            attempt,
+
+            model,
+
+            status:
+              response.status,
+
+            error:
+              rawResponse.error ??
+              null,
+          }
+        );
+
         lastError =
           rawResponse.error
             ?.message ||
