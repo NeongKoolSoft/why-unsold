@@ -173,6 +173,18 @@ export default function ExecutionStrategyReport({
     ),
   ];
 
+  const checklistPageGroups = [
+    strategy.checklistGroups.slice(
+      0,
+      2
+    ),
+
+    strategy.checklistGroups.slice(
+      2,
+      4
+    ),
+  ];
+
   return (
     <div className="strategy-report-shell">
       <div className="strategy-report-controls">
@@ -202,7 +214,7 @@ export default function ExecutionStrategyReport({
         {/* PAGE 1 */}
         <article className="strategy-page strategy-cover-page">
           <ReportHeader
-            page="01 / 13"
+            page="01 / 14"
             title="현재 상태와 30일 목표"
           />
 
@@ -308,7 +320,7 @@ export default function ExecutionStrategyReport({
         {/* PAGE 2 */}
         <article className="strategy-page">
           <ReportHeader
-            page="02 / 13"
+            page="02 / 14"
             title="30일 목표와 성공 신호"
           />
 
@@ -386,7 +398,7 @@ export default function ExecutionStrategyReport({
         {/* PAGE 3 */}
         <article className="strategy-page">
           <ReportHeader
-            page="03 / 13"
+            page="03 / 14"
             title="권장 전략"
           />
 
@@ -473,7 +485,7 @@ export default function ExecutionStrategyReport({
         {/* PAGE 4 */}
         <article className="strategy-page">
           <ReportHeader
-            page="04 / 13"
+            page="04 / 14"
             title="전략 유지·변경 조건"
           />
 
@@ -578,26 +590,11 @@ export default function ExecutionStrategyReport({
                 ).padStart(
                   2,
                   "0"
-                )} / 13`}
+                )} / 14`}
                 title={`${weekIndex + 1}주차 실행계획`}
               />
 
-              <section className="strategy-section">
-                <SectionTitle
-                  number={
-                    weekIndex < 2
-                      ? "04"
-                      : "05"
-                  }
-                  title={`${weekIndex + 1}주차`}
-                  description={
-                    weekIndex < 2
-                      ? "먼저 확인하고 기록한 뒤, 확인된 신호를 기준으로 행동합니다."
-                      : "누적된 매수 반응을 기준으로 유지·변경·재진단을 준비합니다."
-                  }
-                />
-
-                <section className="strategy-week-card strategy-week-card-single">
+              <section className="strategy-week-card strategy-week-card-single">
                   <header>
                     <span>
                       WEEK{" "}
@@ -735,7 +732,6 @@ export default function ExecutionStrategyReport({
                       }
                     </strong>
                   </p>
-                </section>
               </section>
 
               <ReportFooter
@@ -763,7 +759,7 @@ export default function ExecutionStrategyReport({
                 ).padStart(
                   2,
                   "0"
-                )} / 13`}
+                )} / 14`}
                 title="매수 반응별 행동 분기"
               />
 
@@ -868,84 +864,103 @@ export default function ExecutionStrategyReport({
           )
         )}
 
-        {/* PAGE 11 */}
-        <article className="strategy-page">
-          <ReportHeader
-            page="11 / 13"
-            title="실전 점검표"
-          />
+        {/* PAGES 11-12: CHECKLIST */}
+        {checklistPageGroups.map(
+          (
+            groups,
+            groupIndex
+          ) => (
+            <article
+              className="strategy-page"
+              key={`checklist-page-${groupIndex}`}
+            >
+              <ReportHeader
+                page={`${String(
+                  groupIndex + 11
+                ).padStart(
+                  2,
+                  "0"
+                )} / 14`}
+                title="실전 점검표"
+              />
 
-          <section className="strategy-section">
-            <SectionTitle
-              number="07"
-              title="실행 전 확인할 항목"
-              description="확인한 항목에 직접 표시하고 필요한 내용을 기록합니다."
-            />
+              <section className="strategy-section">
+                <SectionTitle
+                  number="07"
+                  title={
+                    groupIndex === 0
+                      ? "노출과 중개 상태 점검"
+                      : "매물 정보와 방문 조건 점검"
+                  }
+                  description="확인한 항목에 직접 표시하고 필요한 내용을 기록합니다."
+                />
 
-            <div className="strategy-checklist-grid">
-              {strategy.checklistGroups.map(
-                (group) => (
-                  <section
-                    className="strategy-checklist-card"
-                    key={
-                      group.type
-                    }
-                  >
-                    <h3>
-                      {group.title}
-                    </h3>
+                <div className="strategy-checklist-grid strategy-checklist-grid-page">
+                  {groups.map(
+                    (group) => (
+                      <section
+                        className="strategy-checklist-card"
+                        key={
+                          group.type
+                        }
+                      >
+                        <h3>
+                          {group.title}
+                        </h3>
 
-                    {group.items.map(
-                      (item) => (
-                        <label
-                          key={
-                            item.label
-                          }
-                        >
-                          <input
-                            type="checkbox"
-                          />
-
-                          <span>
-                            <strong>
-                              {
+                        {group.items.map(
+                          (item) => (
+                            <label
+                              key={
                                 item.label
                               }
-                            </strong>
+                            >
+                              <input
+                                type="checkbox"
+                              />
 
-                            <small>
-                              {
-                                item.reason
-                              }
-                            </small>
-                          </span>
+                              <span>
+                                <strong>
+                                  {
+                                    item.label
+                                  }
+                                </strong>
 
-                          <em>
-                            {item.priority ===
-                            "required"
-                              ? "필수"
-                              : "권장"}
-                          </em>
-                        </label>
-                      )
-                    )}
-                  </section>
-                )
-              )}
-            </div>
-          </section>
+                                <small>
+                                  {
+                                    item.reason
+                                  }
+                                </small>
+                              </span>
 
-          <ReportFooter
-            strategyId={
-              strategy.strategyId
-            }
-          />
-        </article>
+                              <em>
+                                {item.priority ===
+                                "required"
+                                  ? "필수"
+                                  : "권장"}
+                              </em>
+                            </label>
+                          )
+                        )}
+                      </section>
+                    )
+                  )}
+                </div>
+              </section>
 
-        {/* PAGE 12 */}
+              <ReportFooter
+                strategyId={
+                  strategy.strategyId
+                }
+              />
+            </article>
+          )
+        )}
+
+        {/* PAGE 13 */}
         <article className="strategy-page">
           <ReportHeader
-            page="12 / 13"
+            page="13 / 14"
             title="변화 기록표"
           />
 
@@ -1044,10 +1059,10 @@ export default function ExecutionStrategyReport({
           />
         </article>
 
-        {/* PAGE 13 */}
+        {/* PAGE 14 */}
         <article className="strategy-page">
           <ReportHeader
-            page="13 / 13"
+            page="14 / 14"
             title="30일 종료 판단"
           />
 
@@ -1471,7 +1486,6 @@ export default function ExecutionStrategyReport({
         .strategy-week-card {
           padding: 24px;
           border: 1px solid #ccd4cf;
-          break-inside: avoid;
         }
 
         .strategy-week-card-single {
@@ -1639,6 +1653,10 @@ export default function ExecutionStrategyReport({
 
         .strategy-checklist-grid {
           margin-top: 24px;
+        }
+
+        .strategy-checklist-grid-page {
+          grid-template-columns: 1fr;
         }
 
         .strategy-checklist-card {
