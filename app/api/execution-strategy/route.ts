@@ -616,306 +616,71 @@ const executionStrategySchema = {
     false,
 };
 
-const executionStrategyEnvelopeSchema = {
-  type:
-    "object",
+const executionStrategyCoreSchema = {
+  type: "object",
 
   properties: {
-    objective: {
-      type:
-        "object",
+    objective:
+      executionStrategySchema
+        .properties.objective,
 
-      properties: {
-        headline: {
-          type:
-            "string",
-        },
-
-        priority: {
-          type:
-            "string",
-
-          enum: [
-            "speed",
-            "balance",
-            "price_defense",
-          ],
-        },
-
-        summary: {
-          type:
-            "string",
-        },
-
-        successSignals: {
-          type:
-            "array",
-
-          minItems:
-            3,
-
-          maxItems:
-            3,
-
-          items: {
-            type:
-              "string",
-          },
-        },
-
-        constraintConflicts: {
-          type:
-            "array",
-
-          minItems:
-            0,
-
-          maxItems:
-            3,
-
-          items: {
-            type:
-              "string",
-          },
-        },
-      },
-
-      required: [
-        "headline",
-        "priority",
-        "summary",
-        "successSignals",
-        "constraintConflicts",
-      ],
-
-      additionalProperties:
-        false,
-    },
-
-    recommendedStrategy: {
-      type:
-        "object",
-
-      properties: {
-        primaryFocus: {
-          type:
-            "string",
-
-          enum: [
-            "price",
-            "liquidity",
-            "exposure",
-            "conversion",
-            "condition",
-          ],
-        },
-
-        priceStance: {
-          type:
-            "string",
-
-          enum: [
-            "maintain",
-            "conditional_adjust",
-            "adjust_within_limit",
-          ],
-        },
-
-        headline: {
-          type:
-            "string",
-        },
-
-        summary: {
-          type:
-            "string",
-        },
-
-        reasons: {
-          type:
-            "array",
-
-          minItems:
-            3,
-
-          maxItems:
-            3,
-
-          items: {
-            type:
-              "string",
-          },
-        },
-
-        maintainConditions: {
-          type:
-            "array",
-
-          minItems:
-            2,
-
-          maxItems:
-            2,
-
-          items: {
-            type:
-              "string",
-          },
-        },
-
-        changeConditions: {
-          type:
-            "array",
-
-          minItems:
-            2,
-
-          maxItems:
-            2,
-
-          items: {
-            type:
-              "string",
-          },
-        },
-
-        avoidActions: {
-          type:
-            "array",
-
-          minItems:
-            2,
-
-          maxItems:
-            2,
-
-          items: {
-            type:
-              "string",
-          },
-        },
-      },
-
-      required: [
-        "primaryFocus",
-        "priceStance",
-        "headline",
-        "summary",
-        "reasons",
-        "maintainConditions",
-        "changeConditions",
-        "avoidActions",
-      ],
-
-      additionalProperties:
-        false,
-    },
-
-    weeklyPlans: {
-      type:
-        "array",
-
-      minItems:
-        4,
-
-      maxItems:
-        4,
-
-      items: {
-        type:
-          "object",
-      },
-    },
-
-    responseBranches: {
-      type:
-        "array",
-
-      minItems:
-        4,
-
-      maxItems:
-        4,
-
-      items: {
-        type:
-          "object",
-      },
-    },
-
-    checklistGroups: {
-      type:
-        "array",
-
-      minItems:
-        4,
-
-      maxItems:
-        4,
-
-      items: {
-        type:
-          "object",
-      },
-    },
-
-    day30Decision: {
-      type:
-        "object",
-
-      properties: {
-        summary: {
-          type:
-            "string",
-        },
-
-        outcomes: {
-          type:
-            "array",
-
-          minItems:
-            3,
-
-          maxItems:
-            3,
-
-          items: {
-            type:
-              "object",
-          },
-        },
-      },
-
-      required: [
-        "summary",
-        "outcomes",
-      ],
-
-      additionalProperties:
-        false,
-    },
-
-    limitations: {
-      type:
-        "array",
-
-      minItems:
-        2,
-
-      maxItems:
-        2,
-
-      items: {
-        type:
-          "string",
-      },
-    },
+    recommendedStrategy:
+      executionStrategySchema
+        .properties
+        .recommendedStrategy,
   },
 
   required: [
     "objective",
     "recommendedStrategy",
+  ],
+
+  additionalProperties:
+    false,
+};
+
+const executionStrategyWeeklySchema = {
+  type: "object",
+
+  properties: {
+    weeklyPlans:
+      executionStrategySchema
+        .properties.weeklyPlans,
+  },
+
+  required: [
     "weeklyPlans",
+  ],
+
+  additionalProperties:
+    false,
+};
+
+const executionStrategySupportSchema = {
+  type: "object",
+
+  properties: {
+    responseBranches:
+      executionStrategySchema
+        .properties
+        .responseBranches,
+
+    checklistGroups:
+      executionStrategySchema
+        .properties
+        .checklistGroups,
+
+    day30Decision:
+      executionStrategySchema
+        .properties
+        .day30Decision,
+
+    limitations:
+      executionStrategySchema
+        .properties.limitations,
+  },
+
+  required: [
     "responseBranches",
     "checklistGroups",
     "day30Decision",
@@ -924,7 +689,7 @@ const executionStrategyEnvelopeSchema = {
 
   additionalProperties:
     false,
-} as const;
+};
 
 const SYSTEM_PROMPT = `
 당신은 아파트 매도진단 결과를
@@ -1824,7 +1589,9 @@ function buildPromptInput(
 
 function buildUserPrompt(
   diagnosis: Diagnosis,
-  input: ExecutionStrategyInput
+  input: ExecutionStrategyInput,
+  sectionName: string,
+  outputSchema: unknown
 ) {
   const promptInput =
     buildPromptInput(
@@ -1834,7 +1601,8 @@ function buildUserPrompt(
 
   return `
 아래 JSON을 사용하여 이 매도 건의
-30일 실행전략을 작성하십시오.
+30일 실행전략 중
+${sectionName} 섹션만 작성하십시오.
 
 중요:
 
@@ -1849,13 +1617,13 @@ function buildUserPrompt(
 - 모든 행동에는 완료 확인 방법을 포함하십시오.
 - JSON 이외의 문장을 출력하지 마십시오.
 - 출력은 아래 JSON Schema의 중첩 구조와 필드명을 정확히 따라야 합니다.
-- objective와 recommendedStrategy를 최상위에서 분리하십시오.
+- 요청한 섹션의 필드만 최상위에 출력하십시오.
 - 필드를 최상위에 임의로 펼치거나 새로운 필드를 추가하지 마십시오.
 
 출력 JSON Schema:
 
 ${JSON.stringify(
-  executionStrategySchema,
+  outputSchema,
   null,
   2
 )}
@@ -2432,397 +2200,307 @@ export async function POST(
       model
     )}:generateContent`;
 
-  let lastError =
-    "실행전략 생성 결과를 확인하지 못했습니다.";
+  const sections: Array<{
+    name: string;
+    schema: unknown;
+    maxOutputTokens: number;
+  }> = [
+    {
+      name:
+        "핵심 목표와 권장 전략",
 
-  for (
-    let attempt = 1;
-    attempt <= 2;
-    attempt += 1
-  ) {
-    try {
-      const response =
-        await fetch(
-          endpoint,
-          {
-            method:
-              "POST",
+      schema:
+        executionStrategyCoreSchema,
 
-            headers: {
-              "Content-Type":
-                "application/json",
+      maxOutputTokens:
+        10000,
+    },
 
-              "x-goog-api-key":
-                apiKey,
-            },
+    {
+      name:
+        "1주차부터 4주차까지의 실행계획",
 
-            body:
-              JSON.stringify({
-                systemInstruction: {
-                  parts: [
-                    {
-                      text:
-                        SYSTEM_PROMPT,
-                    },
-                  ],
-                },
+      schema:
+        executionStrategyWeeklySchema,
 
-                contents: [
-                  {
-                    role:
-                      "user",
+      maxOutputTokens:
+        22000,
+    },
 
+    {
+      name:
+        "반응 분기, 실전 점검표, 30일 종료 판단",
+
+      schema:
+        executionStrategySupportSchema,
+
+      maxOutputTokens:
+        18000,
+    },
+  ];
+
+  type GeneratedSection = {
+    name: string;
+
+    parsed:
+      Record<
+        string,
+        unknown
+      >;
+
+    attempt: number;
+
+    finishReason:
+      string | null;
+
+    usage: {
+      promptTokens:
+        number | null;
+
+      outputTokens:
+        number | null;
+
+      thinkingTokens:
+        number | null;
+
+      totalTokens:
+        number | null;
+    };
+  };
+
+  async function generateSection(
+    section:
+      (typeof sections)[number]
+  ): Promise<GeneratedSection> {
+    let lastError =
+      `${section.name} 생성 결과를 확인하지 못했습니다.`;
+
+    for (
+      let attempt = 1;
+      attempt <= 2;
+      attempt += 1
+    ) {
+      try {
+        const response =
+          await fetch(
+            endpoint,
+            {
+              method:
+                "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+
+                "x-goog-api-key":
+                  apiKey,
+              },
+
+              body:
+                JSON.stringify({
+                  systemInstruction: {
                     parts: [
                       {
                         text:
-                          buildUserPrompt(
-                            diagnosis,
-                            executionInput
-                          ),
+                          SYSTEM_PROMPT,
                       },
                     ],
                   },
-                ],
 
-                generationConfig: {
-                  ...(model.startsWith(
-                    "gemini-3"
-                  )
-                    ? {
-                        thinkingConfig: {
-                          thinkingLevel:
-                            "MEDIUM",
+                  contents: [
+                    {
+                      role:
+                        "user",
+
+                      parts: [
+                        {
+                          text:
+                            buildUserPrompt(
+                              diagnosis,
+                              executionInput,
+                              section.name,
+                              section.schema
+                            ),
                         },
-                      }
-                    : {}),
+                      ],
+                    },
+                  ],
 
-                  maxOutputTokens:
-                    32000,
+                  generationConfig: {
+                    ...(model.startsWith(
+                      "gemini-3"
+                    )
+                      ? {
+                          thinkingConfig: {
+                            thinkingLevel:
+                              "MEDIUM",
+                          },
+                        }
+                      : {}),
 
-                  responseMimeType:
-                    "application/json",
+                    maxOutputTokens:
+                      section
+                        .maxOutputTokens,
 
-                  responseJsonSchema:
-                    executionStrategyEnvelopeSchema,
-                },
-              }),
+                    responseMimeType:
+                      "application/json",
 
-            cache:
-              "no-store",
-          }
-        );
+                    responseJsonSchema:
+                      section.schema,
+                  },
+                }),
 
-      const rawResponse =
-        (await response.json()) as
-          GeminiResponse;
-
-      if (!response.ok) {
-        console.error(
-          "[execution-strategy] Gemini API error",
-          {
-            attempt,
-
-            model,
-
-            status:
-              response.status,
-
-            error:
-              rawResponse.error ??
-              null,
-          }
-        );
-
-        lastError =
-          rawResponse.error
-            ?.message ||
-          `Gemini API 요청에 실패했습니다. (${response.status})`;
-
-        continue;
-      }
-
-      if (
-        rawResponse.promptFeedback
-          ?.blockReason
-      ) {
-        lastError =
-          "Gemini가 실행전략 요청을 처리하지 않았습니다.";
-
-        continue;
-      }
-
-      const candidate =
-        rawResponse.candidates?.[0];
-
-      if (!candidate) {
-        lastError =
-          "Gemini 실행전략 결과가 비어 있습니다.";
-
-        continue;
-      }
-
-      const outputText =
-        extractGeminiText(
-          rawResponse
-        );
-
-      if (!outputText) {
-        lastError =
-          "Gemini 실행전략 텍스트가 비어 있습니다.";
-
-        continue;
-      }
-
-      let parsed:
-        unknown;
-
-      try {
-        parsed =
-          parseGeminiJson(
-            outputText
+              cache:
+                "no-store",
+            }
           );
-      } catch (error) {
-        console.error(
-          "[execution-strategy] JSON parse failed",
-          {
-            attempt,
-            model,
-            finishReason:
-              candidate.finishReason ??
-              null,
 
-            error:
-              error instanceof Error
-                ? error.message
-                : "unknown",
-          }
-        );
+        const rawResponse =
+          (await response.json()) as
+            GeminiResponse;
 
-        lastError =
-          candidate.finishReason ===
-            "MAX_TOKENS"
-            ? "Gemini 응답이 길이 제한으로 중간에 잘렸습니다."
-            : "Gemini 실행전략 JSON을 해석하지 못했습니다.";
-
-        continue;
-      }
-
-      if (
-        !validateAiStrategy(
-          parsed
-        )
-      ) {
-
-        if (
-          process.env.VERCEL_ENV ===
-            "preview" &&
-          diagnosis.reportId ===
-            "PREVIEW-SAMPLE-001" &&
-          attempt === 1
-        ) {
-          const firstItem = (
-            value:
-              unknown
-          ) =>
-            Array.isArray(
-              value
-            )
-              ? value[0]
-              : null;
-
-          const keysOf = (
-            value:
-              unknown
-          ) =>
-            isRecord(
-              value
-            )
-              ? Object.keys(
-                  value
-                )
-              : [];
-
-          const parsedRecord =
-            isRecord(
-              parsed
-            )
-              ? parsed
-              : null;
-
-          const weeklyPlan =
-            firstItem(
-              parsedRecord
-                ?.weeklyPlans
-            );
-
-          const weeklyObservation =
-            isRecord(
-              weeklyPlan
-            )
-              ? firstItem(
-                  weeklyPlan
-                    .observations
-                )
-              : null;
-
-          const weeklyCriterion =
-            isRecord(
-              weeklyPlan
-            )
-              ? firstItem(
-                  weeklyPlan
-                    .decisionCriteria
-                )
-              : null;
-
-          const weeklyAction =
-            isRecord(
-              weeklyPlan
-            )
-              ? firstItem(
-                  weeklyPlan
-                    .actions
-                )
-              : null;
-
-          const responseBranch =
-            firstItem(
-              parsedRecord
-                ?.responseBranches
-            );
-
-          const checklistGroup =
-            firstItem(
-              parsedRecord
-                ?.checklistGroups
-            );
-
-          const checklistItem =
-            isRecord(
-              checklistGroup
-            )
-              ? firstItem(
-                  checklistGroup
-                    .items
-                )
-              : null;
-
-          const day30Decision =
-            parsedRecord
-              ?.day30Decision;
-
-          const day30Outcome =
-            isRecord(
-              day30Decision
-            )
-              ? firstItem(
-                  day30Decision
-                    .outcomes
-                )
-              : null;
-
+        if (!response.ok) {
           console.error(
-            "[execution-strategy] preview shape keys " +
-              JSON.stringify({
-                weeklyPlan:
-                  keysOf(
-                    weeklyPlan
-                  ),
+            "[execution-strategy] Gemini section API error",
+            {
+              section:
+                section.name,
 
-                weeklyObservation:
-                  keysOf(
-                    weeklyObservation
-                  ),
+              attempt,
 
-                weeklyCriterion:
-                  keysOf(
-                    weeklyCriterion
-                  ),
+              model,
 
-                weeklyAction:
-                  keysOf(
-                    weeklyAction
-                  ),
+              status:
+                response.status,
 
-                responseBranch:
-                  keysOf(
-                    responseBranch
-                  ),
-
-                checklistGroup:
-                  keysOf(
-                    checklistGroup
-                  ),
-
-                checklistItem:
-                  keysOf(
-                    checklistItem
-                  ),
-
-                day30Outcome:
-                  keysOf(
-                    day30Outcome
-                  ),
-              })
+              error:
+                rawResponse.error ??
+                null,
+            }
           );
+
+          lastError =
+            rawResponse.error
+              ?.message ||
+            `Gemini API 요청에 실패했습니다. (${response.status})`;
+
+          continue;
         }
 
-        console.error(
-          "[execution-strategy] response shape mismatch",
-          {
-            attempt,
-            model,
-            finishReason:
-              candidate.finishReason ??
-              null,
-          }
-        );
+        if (
+          rawResponse.promptFeedback
+            ?.blockReason
+        ) {
+          lastError =
+            `Gemini가 ${section.name} 요청을 처리하지 않았습니다.`;
 
-        lastError =
-          "Gemini 실행전략 결과의 구조가 예상 형식과 다릅니다.";
+          continue;
+        }
 
-        continue;
-      }
+        const candidate =
+          rawResponse.candidates?.[0];
 
-      if (
-        containsForbiddenContent(
-          parsed
-        )
-      ) {
-        console.error(
-          "[execution-strategy] forbidden generated content",
-          {
-            attempt,
-            model,
-          }
-        );
+        if (!candidate) {
+          lastError =
+            `Gemini ${section.name} 결과가 비어 있습니다.`;
 
-        lastError =
-          "실행전략 결과에 허용되지 않은 가격 또는 내부 표현이 포함됐습니다.";
+          continue;
+        }
 
-        continue;
-      }
+        const outputText =
+          extractGeminiText(
+            rawResponse
+          );
 
-      const strategy =
-        buildFinalStrategy(
-          diagnosis,
-          executionInput,
-          parsed
-        );
+        if (!outputText) {
+          lastError =
+            `Gemini ${section.name} 텍스트가 비어 있습니다.`;
 
-      return NextResponse.json({
-        strategy,
+          continue;
+        }
 
-        meta: {
-          provider:
-            "gemini",
+        let parsed:
+          unknown;
 
-          model,
+        try {
+          parsed =
+            parseGeminiJson(
+              outputText
+            );
+        } catch (error) {
+          console.error(
+            "[execution-strategy] section JSON parse failed",
+            {
+              section:
+                section.name,
+
+              attempt,
+
+              model,
+
+              finishReason:
+                candidate
+                  .finishReason ??
+                null,
+
+              error:
+                error instanceof
+                  Error
+                  ? error.message
+                  : "unknown",
+            }
+          );
+
+          lastError =
+            candidate.finishReason ===
+              "MAX_TOKENS"
+              ? `Gemini ${section.name} 응답이 길이 제한으로 중간에 잘렸습니다.`
+              : `Gemini ${section.name} JSON을 해석하지 못했습니다.`;
+
+          continue;
+        }
+
+        if (!isRecord(parsed)) {
+          lastError =
+            `Gemini ${section.name} 결과가 객체 형식이 아닙니다.`;
+
+          continue;
+        }
+
+        if (
+          containsForbiddenContent(
+            parsed
+          )
+        ) {
+          console.error(
+            "[execution-strategy] forbidden section content",
+            {
+              section:
+                section.name,
+
+              attempt,
+
+              model,
+            }
+          );
+
+          lastError =
+            `${section.name} 결과에 허용되지 않은 가격 또는 내부 표현이 포함됐습니다.`;
+
+          continue;
+        }
+
+        return {
+          name:
+            section.name,
+
+          parsed,
 
           attempt,
 
           finishReason:
-            candidate.finishReason ??
+            candidate
+              .finishReason ??
             null,
 
           usage: {
@@ -2850,38 +2528,181 @@ export async function POST(
                 ?.totalTokenCount ??
               null,
           },
-        },
-      });
-    } catch (error) {
-      console.error(
-        "[execution-strategy] Gemini request failed",
-        {
-          attempt,
+        };
+      } catch (error) {
+        console.error(
+          "[execution-strategy] Gemini section request failed",
+          {
+            section:
+              section.name,
 
-          error:
-            error instanceof Error
-              ? error.message
-              : "unknown",
-        }
-      );
+            attempt,
 
-      lastError =
-        error instanceof Error
-          ? error.message
-          : "Gemini 실행전략 생성 중 오류가 발생했습니다.";
+            model,
+
+            error:
+              error instanceof
+                Error
+                ? error.message
+                : "unknown",
+          }
+        );
+
+        lastError =
+          error instanceof Error
+            ? error.message
+            : `Gemini ${section.name} 생성 중 오류가 발생했습니다.`;
+      }
     }
+
+    throw new Error(
+      lastError
+    );
   }
 
-  return NextResponse.json(
-    {
-      error:
-        "30일 실행전략을 생성하지 못했습니다.",
+  const sectionResults:
+    GeneratedSection[] = [];
 
-      detail:
-        lastError,
-    },
-    {
-      status: 502,
+  try {
+    for (
+      const section of sections
+    ) {
+      sectionResults.push(
+        await generateSection(
+          section
+        )
+      );
     }
-  );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          "30일 실행전략을 생성하지 못했습니다.",
+
+        detail:
+          error instanceof Error
+            ? error.message
+            : "Gemini 실행전략 생성 중 오류가 발생했습니다.",
+      },
+      {
+        status: 502,
+      }
+    );
+  }
+
+  const mergedStrategy:
+    Record<
+      string,
+      unknown
+    > = {};
+
+  for (
+    const result of
+      sectionResults
+  ) {
+    Object.assign(
+      mergedStrategy,
+      result.parsed
+    );
+  }
+
+  if (
+    !validateAiStrategy(
+      mergedStrategy
+    )
+  ) {
+    console.error(
+      "[execution-strategy] merged response shape mismatch",
+      {
+        model,
+
+        sectionKeys:
+          sectionResults.map(
+            (result) => ({
+              name:
+                result.name,
+
+              keys:
+                Object.keys(
+                  result.parsed
+                ),
+            })
+          ),
+      }
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          "30일 실행전략을 생성하지 못했습니다.",
+
+        detail:
+          "Gemini 실행전략 결과의 구조가 예상 형식과 다릅니다.",
+      },
+      {
+        status: 502,
+      }
+    );
+  }
+
+  if (
+    containsForbiddenContent(
+      mergedStrategy
+    )
+  ) {
+    console.error(
+      "[execution-strategy] forbidden merged content",
+      {
+        model,
+      }
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          "30일 실행전략을 생성하지 못했습니다.",
+
+        detail:
+          "실행전략 결과에 허용되지 않은 가격 또는 내부 표현이 포함됐습니다.",
+      },
+      {
+        status: 502,
+      }
+    );
+  }
+
+  const strategy =
+    buildFinalStrategy(
+      diagnosis,
+      executionInput,
+      mergedStrategy
+    );
+
+  return NextResponse.json({
+    strategy,
+
+    meta: {
+      provider:
+        "gemini",
+
+      model,
+
+      sections:
+        sectionResults.map(
+          (result) => ({
+            name:
+              result.name,
+
+            attempt:
+              result.attempt,
+
+            finishReason:
+              result.finishReason,
+
+            usage:
+              result.usage,
+          })
+        ),
+    },
+  });
 }
