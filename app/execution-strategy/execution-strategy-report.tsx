@@ -161,17 +161,17 @@ export default function ExecutionStrategyReport({
   const recommended =
     strategy.recommendedStrategy;
 
-  const firstHalf =
-    strategy.weeklyPlans.slice(
+  const branchGroups = [
+    strategy.responseBranches.slice(
       0,
       2
-    );
+    ),
 
-  const secondHalf =
-    strategy.weeklyPlans.slice(
+    strategy.responseBranches.slice(
       2,
       4
-    );
+    ),
+  ];
 
   return (
     <div className="strategy-report-shell">
@@ -202,7 +202,7 @@ export default function ExecutionStrategyReport({
         {/* PAGE 1 */}
         <article className="strategy-page strategy-cover-page">
           <ReportHeader
-            page="01 / 07"
+            page="01 / 11"
             title="현재 상태와 30일 목표"
           />
 
@@ -372,7 +372,7 @@ export default function ExecutionStrategyReport({
         {/* PAGE 2 */}
         <article className="strategy-page">
           <ReportHeader
-            page="02 / 07"
+            page="02 / 11"
             title="권장 전략"
           />
 
@@ -524,456 +524,318 @@ export default function ExecutionStrategyReport({
           />
         </article>
 
-        {/* PAGE 3 */}
-        <article className="strategy-page">
-          <ReportHeader
-            page="03 / 07"
-            title="1~2주차 실행계획"
-          />
+        {/* PAGES 3-6: WEEK 1-4 */}
+        {strategy.weeklyPlans.map(
+          (
+            week,
+            weekIndex
+          ) => (
+            <article
+              className="strategy-page"
+              key={
+                week.period
+              }
+            >
+              <ReportHeader
+                page={`${String(
+                  weekIndex + 3
+                ).padStart(
+                  2,
+                  "0"
+                )} / 11`}
+                title={`${weekIndex + 1}주차 실행계획`}
+              />
 
-          <section className="strategy-section">
-            <SectionTitle
-              number="04"
-              title="1주차와 2주차"
-              description="먼저 확인하고 기록한 뒤, 확인된 신호를 기준으로 행동합니다."
-            />
+              <section className="strategy-section">
+                <SectionTitle
+                  number={
+                    weekIndex < 2
+                      ? "04"
+                      : "05"
+                  }
+                  title={`${weekIndex + 1}주차`}
+                  description={
+                    weekIndex < 2
+                      ? "먼저 확인하고 기록한 뒤, 확인된 신호를 기준으로 행동합니다."
+                      : "누적된 매수 반응을 기준으로 유지·변경·재진단을 준비합니다."
+                  }
+                />
 
-            <div className="strategy-week-list">
-              {firstHalf.map(
-                (
-                  week,
-                  index
-                ) => (
-                  <section
-                    className="strategy-week-card"
-                    key={
-                      week.period
-                    }
-                  >
-                    <header>
-                      <span>
-                        WEEK{" "}
-                        {index + 1}
-                      </span>
-
-                      <strong>
-                        {week.period}일
-                      </strong>
-                    </header>
-
-                    <h3>
-                      {week.title}
-                    </h3>
-
-                    <p className="week-objective">
-                      {week.objective}
-                    </p>
-
-                    <div className="week-columns">
-                      <div>
-                        <span className="week-label">
-                          관찰
-                        </span>
-
-                        {week.observations.map(
-                          (
-                            observation
-                          ) => (
-                            <div
-                              className="week-item"
-                              key={
-                                observation.item
-                              }
-                            >
-                              <strong>
-                                {
-                                  observation.item
-                                }
-                              </strong>
-
-                              <p>
-                                {
-                                  observation.method
-                                }
-                              </p>
-                            </div>
-                          )
-                        )}
-                      </div>
-
-                      <div>
-                        <span className="week-label">
-                          판단 기준
-                        </span>
-
-                        {week.decisionCriteria.map(
-                          (
-                            criterion
-                          ) => (
-                            <div
-                              className="week-item"
-                              key={
-                                criterion.condition
-                              }
-                            >
-                              <strong>
-                                {
-                                  criterion.condition
-                                }
-                              </strong>
-
-                              <p>
-                                {
-                                  criterion.meaning
-                                }
-                              </p>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="week-actions">
-                      <span className="week-label">
-                        행동
-                      </span>
-
-                      {week.actions.map(
-                        (
-                          action,
-                          actionIndex
-                        ) => (
-                          <div
-                            className="week-action"
-                            key={
-                              action.title
-                            }
-                          >
-                            <span>
-                              {actionIndex +
-                                1}
-                            </span>
-
-                            <div>
-                              <strong>
-                                {
-                                  action.title
-                                }
-                              </strong>
-
-                              <p>
-                                {
-                                  action.detail
-                                }
-                              </p>
-
-                              <small>
-                                완료 확인:{" "}
-                                {
-                                  action.completionCheck
-                                }
-                              </small>
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-
-                    <p className="next-condition">
-                      다음 단계 조건:{" "}
-                      <strong>
-                        {
-                          week.nextStepCondition
-                        }
-                      </strong>
-                    </p>
-                  </section>
-                )
-              )}
-            </div>
-          </section>
-
-          <ReportFooter
-            strategyId={
-              strategy.strategyId
-            }
-          />
-        </article>
-
-        {/* PAGE 4 */}
-        <article className="strategy-page">
-          <ReportHeader
-            page="04 / 07"
-            title="3~4주차 실행계획"
-          />
-
-          <section className="strategy-section">
-            <SectionTitle
-              number="05"
-              title="3주차와 4주차"
-              description="누적된 매수 반응을 기준으로 유지·변경·재진단을 준비합니다."
-            />
-
-            <div className="strategy-week-list">
-              {secondHalf.map(
-                (
-                  week,
-                  index
-                ) => (
-                  <section
-                    className="strategy-week-card"
-                    key={
-                      week.period
-                    }
-                  >
-                    <header>
-                      <span>
-                        WEEK{" "}
-                        {index + 3}
-                      </span>
-
-                      <strong>
-                        {week.period}일
-                      </strong>
-                    </header>
-
-                    <h3>
-                      {week.title}
-                    </h3>
-
-                    <p className="week-objective">
-                      {week.objective}
-                    </p>
-
-                    <div className="week-columns">
-                      <div>
-                        <span className="week-label">
-                          관찰
-                        </span>
-
-                        {week.observations.map(
-                          (
-                            observation
-                          ) => (
-                            <div
-                              className="week-item"
-                              key={
-                                observation.item
-                              }
-                            >
-                              <strong>
-                                {
-                                  observation.item
-                                }
-                              </strong>
-
-                              <p>
-                                {
-                                  observation.method
-                                }
-                              </p>
-                            </div>
-                          )
-                        )}
-                      </div>
-
-                      <div>
-                        <span className="week-label">
-                          판단 기준
-                        </span>
-
-                        {week.decisionCriteria.map(
-                          (
-                            criterion
-                          ) => (
-                            <div
-                              className="week-item"
-                              key={
-                                criterion.condition
-                              }
-                            >
-                              <strong>
-                                {
-                                  criterion.condition
-                                }
-                              </strong>
-
-                              <p>
-                                {
-                                  criterion.meaning
-                                }
-                              </p>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="week-actions">
-                      <span className="week-label">
-                        행동
-                      </span>
-
-                      {week.actions.map(
-                        (
-                          action,
-                          actionIndex
-                        ) => (
-                          <div
-                            className="week-action"
-                            key={
-                              action.title
-                            }
-                          >
-                            <span>
-                              {actionIndex +
-                                1}
-                            </span>
-
-                            <div>
-                              <strong>
-                                {
-                                  action.title
-                                }
-                              </strong>
-
-                              <p>
-                                {
-                                  action.detail
-                                }
-                              </p>
-
-                              <small>
-                                완료 확인:{" "}
-                                {
-                                  action.completionCheck
-                                }
-                              </small>
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-
-                    <p className="next-condition">
-                      다음 단계 조건:{" "}
-                      <strong>
-                        {
-                          week.nextStepCondition
-                        }
-                      </strong>
-                    </p>
-                  </section>
-                )
-              )}
-            </div>
-          </section>
-
-          <ReportFooter
-            strategyId={
-              strategy.strategyId
-            }
-          />
-        </article>
-
-        {/* PAGE 5 */}
-        <article className="strategy-page">
-          <ReportHeader
-            page="05 / 07"
-            title="매수 반응별 행동 분기"
-          />
-
-          <section className="strategy-section">
-            <SectionTitle
-              number="06"
-              title="반응이 달라지면 행동도 달라집니다"
-              description="문의·방문·제안 중 어디에서 멈췄는지에 따라 다음 점검 대상을 바꿉니다."
-            />
-
-            <div className="strategy-branch-list">
-              {strategy.responseBranches.map(
-                (
-                  branch,
-                  index
-                ) => (
-                  <article
-                    className="strategy-branch-card"
-                    key={
-                      branch.stage
-                    }
-                  >
+                <section className="strategy-week-card strategy-week-card-single">
+                  <header>
                     <span>
-                      {String(
-                        index + 1
-                      ).padStart(
-                        2,
-                        "0"
-                      )}
+                      WEEK{" "}
+                      {weekIndex + 1}
                     </span>
 
+                    <strong>
+                      {week.period}일
+                    </strong>
+                  </header>
+
+                  <h3>
+                    {week.title}
+                  </h3>
+
+                  <p className="week-objective">
+                    {week.objective}
+                  </p>
+
+                  <div className="week-columns">
                     <div>
-                      <h3>
-                        {branch.label}
-                      </h3>
+                      <span className="week-label">
+                        관찰
+                      </span>
 
-                      <p>
-                        <strong>
-                          관찰:{" "}
-                        </strong>
-                        {
-                          branch.observation
-                        }
-                      </p>
-
-                      <p>
-                        <strong>
-                          해석:{" "}
-                        </strong>
-                        {
-                          branch.interpretation
-                        }
-                      </p>
-
-                      <ul>
-                        {branch.actions.map(
-                          (
-                            action
-                          ) => (
-                            <li
-                              key={
-                                action
+                      {week.observations.map(
+                        (
+                          observation
+                        ) => (
+                          <div
+                            className="week-item"
+                            key={
+                              observation.item
+                            }
+                          >
+                            <strong>
+                              {
+                                observation.item
                               }
-                            >
-                              {action}
-                            </li>
-                          )
-                        )}
-                      </ul>
+                            </strong>
 
-                      <small>
-                        다시 판단할 때:{" "}
-                        {
-                          branch.reassessWhen
-                        }
-                      </small>
+                            <p>
+                              {
+                                observation.method
+                              }
+                            </p>
+                          </div>
+                        )
+                      )}
                     </div>
-                  </article>
-                )
-              )}
-            </div>
-          </section>
 
-          <ReportFooter
-            strategyId={
-              strategy.strategyId
-            }
-          />
-        </article>
+                    <div>
+                      <span className="week-label">
+                        판단 기준
+                      </span>
 
-        {/* PAGE 6 */}
+                      {week.decisionCriteria.map(
+                        (
+                          criterion
+                        ) => (
+                          <div
+                            className="week-item"
+                            key={
+                              criterion.condition
+                            }
+                          >
+                            <strong>
+                              {
+                                criterion.condition
+                              }
+                            </strong>
+
+                            <p>
+                              {
+                                criterion.meaning
+                              }
+                            </p>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="week-actions">
+                    <span className="week-label">
+                      행동
+                    </span>
+
+                    {week.actions.map(
+                      (
+                        action,
+                        actionIndex
+                      ) => (
+                        <div
+                          className="week-action"
+                          key={
+                            action.title
+                          }
+                        >
+                          <span>
+                            {actionIndex +
+                              1}
+                          </span>
+
+                          <div>
+                            <strong>
+                              {
+                                action.title
+                              }
+                            </strong>
+
+                            <p>
+                              {
+                                action.detail
+                              }
+                            </p>
+
+                            <small>
+                              완료 확인:{" "}
+                              {
+                                action.completionCheck
+                              }
+                            </small>
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </div>
+
+                  <p className="next-condition">
+                    다음 단계 조건:{" "}
+                    <strong>
+                      {
+                        week.nextStepCondition
+                      }
+                    </strong>
+                  </p>
+                </section>
+              </section>
+
+              <ReportFooter
+                strategyId={
+                  strategy.strategyId
+                }
+              />
+            </article>
+          )
+        )}
+
+        {/* PAGES 7-8: RESPONSE BRANCHES */}
+        {branchGroups.map(
+          (
+            branches,
+            groupIndex
+          ) => (
+            <article
+              className="strategy-page"
+              key={`branch-group-${groupIndex}`}
+            >
+              <ReportHeader
+                page={`${String(
+                  groupIndex + 7
+                ).padStart(
+                  2,
+                  "0"
+                )} / 11`}
+                title="매수 반응별 행동 분기"
+              />
+
+              <section className="strategy-section">
+                <SectionTitle
+                  number="06"
+                  title={
+                    groupIndex === 0
+                      ? "문의와 방문 단계"
+                      : "제안과 계약 단계"
+                  }
+                  description="문의·방문·제안 중 어디에서 멈췄는지에 따라 다음 점검 대상을 바꿉니다."
+                />
+
+                <div className="strategy-branch-list">
+                  {branches.map(
+                    (
+                      branch,
+                      branchIndex
+                    ) => {
+                      const absoluteIndex =
+                        groupIndex *
+                          2 +
+                        branchIndex;
+
+                      return (
+                        <article
+                          className="strategy-branch-card"
+                          key={
+                            branch.stage
+                          }
+                        >
+                          <span>
+                            {String(
+                              absoluteIndex +
+                                1
+                            ).padStart(
+                              2,
+                              "0"
+                            )}
+                          </span>
+
+                          <div>
+                            <h3>
+                              {branch.label}
+                            </h3>
+
+                            <p>
+                              <strong>
+                                관찰:{" "}
+                              </strong>
+                              {
+                                branch.observation
+                              }
+                            </p>
+
+                            <p>
+                              <strong>
+                                해석:{" "}
+                              </strong>
+                              {
+                                branch.interpretation
+                              }
+                            </p>
+
+                            <ul>
+                              {branch.actions.map(
+                                (
+                                  action
+                                ) => (
+                                  <li
+                                    key={
+                                      action
+                                    }
+                                  >
+                                    {action}
+                                  </li>
+                                )
+                              )}
+                            </ul>
+
+                            <small>
+                              다시 판단할 때:{" "}
+                              {
+                                branch.reassessWhen
+                              }
+                            </small>
+                          </div>
+                        </article>
+                      );
+                    }
+                  )}
+                </div>
+              </section>
+
+              <ReportFooter
+                strategyId={
+                  strategy.strategyId
+                }
+              />
+            </article>
+          )
+        )}
+
+        {/* PAGE 9 */}
         <article className="strategy-page">
           <ReportHeader
-            page="06 / 07"
+            page="09 / 11"
             title="실전 점검표"
           />
 
@@ -1044,17 +906,17 @@ export default function ExecutionStrategyReport({
           />
         </article>
 
-        {/* PAGE 7 */}
+        {/* PAGE 10 */}
         <article className="strategy-page">
           <ReportHeader
-            page="07 / 07"
-            title="변화 기록과 30일 판단"
+            page="10 / 11"
+            title="변화 기록표"
           />
 
           <section className="strategy-section">
             <SectionTitle
               number="08"
-              title="변화 기록표"
+              title="30일 변화 기록"
               description="미래 수치를 예측하지 않고 실제로 확인한 값을 직접 기록합니다."
             />
 
@@ -1118,6 +980,40 @@ export default function ExecutionStrategyReport({
               </table>
             </div>
           </section>
+
+          <section className="strategy-record-guide">
+            <strong>
+              기록 원칙
+            </strong>
+
+            <ul>
+              <li>
+                확인하지 못한 값은 0이 아니라 빈칸으로 둡니다.
+              </li>
+
+              <li>
+                문의·방문·제안은 중개업소별 기록을 합산합니다.
+              </li>
+
+              <li>
+                가격이나 노출 조건을 바꾼 날짜를 함께 적습니다.
+              </li>
+            </ul>
+          </section>
+
+          <ReportFooter
+            strategyId={
+              strategy.strategyId
+            }
+          />
+        </article>
+
+        {/* PAGE 11 */}
+        <article className="strategy-page">
+          <ReportHeader
+            page="11 / 11"
+            title="30일 종료 판단"
+          />
 
           <section className="strategy-section">
             <SectionTitle
@@ -1251,14 +1147,22 @@ export default function ExecutionStrategyReport({
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
-          gap: 20px;
+          gap: 24px;
           padding-bottom: 18px;
           border-bottom: 1px solid #17231d;
         }
 
         .strategy-page-header div {
-          display: grid;
+          display: flex;
+          flex-direction: column;
           gap: 6px;
+          min-width: 0;
+        }
+
+        .strategy-page-header div span,
+        .strategy-page-header div strong,
+        .strategy-page-header > span {
+          display: block;
         }
 
         .strategy-page-header div span,
@@ -1273,8 +1177,13 @@ export default function ExecutionStrategyReport({
           font-size: 14px;
         }
 
+        .strategy-page-header > span {
+          flex: 0 0 auto;
+          text-align: right;
+        }
+
         .strategy-cover {
-          padding: 72px 0 52px;
+          padding: 64px 0 44px;
           border-bottom: 1px solid #d9ddd9;
         }
 
@@ -1303,8 +1212,8 @@ export default function ExecutionStrategyReport({
         }
 
         .strategy-property-card {
-          margin-top: 34px;
-          padding: 28px;
+          margin-top: 30px;
+          padding: 26px;
           background: #f4f2ea;
         }
 
@@ -1330,14 +1239,14 @@ export default function ExecutionStrategyReport({
         .strategy-metric-grid {
           display: grid;
           grid-template-columns: repeat(5, minmax(0, 1fr));
-          margin-top: 24px;
+          margin-top: 22px;
           border-top: 1px solid #d2d7d3;
           border-left: 1px solid #d2d7d3;
         }
 
         .strategy-metric-grid div {
-          min-height: 88px;
-          padding: 16px;
+          min-height: 82px;
+          padding: 14px;
           border-right: 1px solid #d2d7d3;
           border-bottom: 1px solid #d2d7d3;
           background: #fff;
@@ -1359,7 +1268,7 @@ export default function ExecutionStrategyReport({
         }
 
         .strategy-section {
-          margin-top: 40px;
+          margin-top: 36px;
         }
 
         .strategy-section-title {
@@ -1394,7 +1303,7 @@ export default function ExecutionStrategyReport({
         }
 
         .strategy-number-list {
-          margin: 24px 0 0;
+          margin: 22px 0 0;
           padding: 0;
           list-style: none;
           border-top: 1px solid #d6dcd7;
@@ -1404,8 +1313,9 @@ export default function ExecutionStrategyReport({
           display: grid;
           grid-template-columns: 52px 1fr;
           align-items: start;
-          padding: 18px 0;
+          padding: 16px 0;
           border-bottom: 1px solid #d6dcd7;
+          break-inside: avoid;
         }
 
         .strategy-number-list li span {
@@ -1416,32 +1326,41 @@ export default function ExecutionStrategyReport({
 
         .strategy-number-list li p {
           margin: 0;
-          line-height: 1.75;
+          line-height: 1.7;
         }
 
         .strategy-warning-box,
         .strategy-avoid-box,
-        .strategy-limitations {
-          margin-top: 28px;
-          padding: 22px 24px;
+        .strategy-limitations,
+        .strategy-record-guide {
+          margin-top: 26px;
+          padding: 20px 22px;
           border-left: 4px solid #b36b3e;
           background: #fff6ef;
+          break-inside: avoid;
+        }
+
+        .strategy-record-guide {
+          border-left-color: #0b684d;
+          background: #eef4ef;
         }
 
         .strategy-warning-box ul,
         .strategy-avoid-box ul,
-        .strategy-limitations ul {
-          margin: 12px 0 0;
+        .strategy-limitations ul,
+        .strategy-record-guide ul {
+          margin: 11px 0 0;
           padding-left: 20px;
           color: #5f665f;
-          line-height: 1.8;
+          line-height: 1.75;
         }
 
         .strategy-primary-card {
-          margin-top: 26px;
-          padding: 32px;
+          margin-top: 24px;
+          padding: 30px;
           border: 1px solid #0b684d;
           background: #eef4ef;
+          break-inside: avoid;
         }
 
         .strategy-tag-row {
@@ -1460,16 +1379,16 @@ export default function ExecutionStrategyReport({
         }
 
         .strategy-primary-card h2 {
-          margin: 22px 0 0;
-          font-size: 34px;
+          margin: 20px 0 0;
+          font-size: 32px;
           line-height: 1.3;
           letter-spacing: -0.045em;
         }
 
         .strategy-primary-card p {
-          margin: 16px 0 0;
+          margin: 14px 0 0;
           color: #53645a;
-          line-height: 1.85;
+          line-height: 1.8;
         }
 
         .strategy-two-column,
@@ -1481,13 +1400,14 @@ export default function ExecutionStrategyReport({
         }
 
         .strategy-two-column {
-          margin-top: 28px;
+          margin-top: 26px;
         }
 
         .strategy-condition-card {
-          padding: 24px;
+          padding: 22px;
           border-top: 4px solid #0b684d;
           background: #f3f6f3;
+          break-inside: avoid;
         }
 
         .strategy-condition-card.change {
@@ -1503,18 +1423,23 @@ export default function ExecutionStrategyReport({
         .strategy-condition-card ul {
           margin: 14px 0 0;
           padding-left: 20px;
-          line-height: 1.8;
+          line-height: 1.75;
         }
 
         .strategy-week-list {
           display: grid;
           gap: 28px;
-          margin-top: 28px;
+          margin-top: 26px;
         }
 
         .strategy-week-card {
-          padding: 26px;
+          padding: 24px;
           border: 1px solid #ccd4cf;
+          break-inside: avoid;
+        }
+
+        .strategy-week-card-single {
+          margin-top: 24px;
         }
 
         .strategy-week-card > header {
@@ -1540,18 +1465,18 @@ export default function ExecutionStrategyReport({
         }
 
         .week-columns {
-          margin-top: 22px;
+          margin-top: 20px;
         }
 
         .week-columns > div,
         .week-actions {
-          padding: 20px;
+          padding: 18px;
           background: #f6f6f1;
         }
 
         .week-label {
           display: block;
-          margin-bottom: 12px;
+          margin-bottom: 11px;
           color: #0b684d;
           font-size: 11px;
           font-weight: 900;
@@ -1559,8 +1484,8 @@ export default function ExecutionStrategyReport({
         }
 
         .week-item + .week-item {
-          margin-top: 14px;
-          padding-top: 14px;
+          margin-top: 13px;
+          padding-top: 13px;
           border-top: 1px solid #d7dcd8;
         }
 
@@ -1577,18 +1502,19 @@ export default function ExecutionStrategyReport({
           margin: 6px 0 0;
           color: #637169;
           font-size: 12px;
-          line-height: 1.65;
+          line-height: 1.6;
         }
 
         .week-actions {
-          margin-top: 16px;
+          margin-top: 15px;
         }
 
         .week-action {
           display: grid;
           grid-template-columns: 28px 1fr;
           gap: 12px;
-          padding: 13px 0;
+          padding: 12px 0;
+          break-inside: avoid;
         }
 
         .week-action + .week-action {
@@ -1608,40 +1534,41 @@ export default function ExecutionStrategyReport({
         }
 
         .week-action p {
-          margin: 6px 0 0;
+          margin: 5px 0 0;
           color: #5f6e65;
           font-size: 12px;
-          line-height: 1.65;
+          line-height: 1.6;
         }
 
         .week-action small {
           display: block;
-          margin-top: 7px;
+          margin-top: 6px;
           color: #77827b;
           line-height: 1.5;
         }
 
         .next-condition {
-          margin: 16px 0 0;
-          padding: 14px 16px;
+          margin: 15px 0 0;
+          padding: 13px 15px;
           background: #eef4ef;
           color: #415248;
           font-size: 12px;
-          line-height: 1.65;
+          line-height: 1.6;
         }
 
         .strategy-branch-list {
           display: grid;
           gap: 16px;
-          margin-top: 26px;
+          margin-top: 24px;
         }
 
         .strategy-branch-card {
           display: grid;
-          grid-template-columns: 48px 1fr;
-          gap: 18px;
-          padding: 22px;
+          grid-template-columns: 44px 1fr;
+          gap: 16px;
+          padding: 20px;
           border: 1px solid #d1d7d3;
+          break-inside: avoid;
         }
 
         .strategy-branch-card > span {
@@ -1656,35 +1583,36 @@ export default function ExecutionStrategyReport({
         }
 
         .strategy-branch-card p {
-          margin: 10px 0 0;
+          margin: 9px 0 0;
           color: #58675f;
           font-size: 13px;
-          line-height: 1.7;
+          line-height: 1.65;
         }
 
         .strategy-branch-card ul {
-          margin: 12px 0 0;
+          margin: 11px 0 0;
           padding-left: 20px;
-          line-height: 1.7;
+          line-height: 1.65;
         }
 
         .strategy-branch-card small {
           display: block;
-          margin-top: 13px;
+          margin-top: 12px;
           color: #7a857e;
         }
 
         .strategy-checklist-grid {
-          margin-top: 26px;
+          margin-top: 24px;
         }
 
         .strategy-checklist-card {
-          padding: 22px;
+          padding: 20px;
           border: 1px solid #d0d7d2;
+          break-inside: avoid;
         }
 
         .strategy-checklist-card h3 {
-          margin: 0 0 14px;
+          margin: 0 0 13px;
           font-size: 18px;
         }
 
@@ -1692,10 +1620,11 @@ export default function ExecutionStrategyReport({
           position: relative;
           display: grid;
           grid-template-columns: 20px 1fr auto;
-          gap: 10px;
+          gap: 9px;
           align-items: start;
-          padding: 14px 0;
+          padding: 13px 0;
           border-top: 1px solid #e0e4e1;
+          break-inside: avoid;
         }
 
         .strategy-checklist-card input {
@@ -1714,7 +1643,7 @@ export default function ExecutionStrategyReport({
         .strategy-checklist-card label span small {
           margin-top: 5px;
           color: #69766e;
-          line-height: 1.55;
+          line-height: 1.5;
         }
 
         .strategy-checklist-card em {
@@ -1739,7 +1668,7 @@ export default function ExecutionStrategyReport({
 
         .strategy-tracking-table th,
         .strategy-tracking-table td {
-          height: 58px;
+          height: 64px;
           padding: 10px;
           border: 1px solid #cfd6d1;
           text-align: center;
@@ -1763,10 +1692,11 @@ export default function ExecutionStrategyReport({
 
         .strategy-outcome-list article {
           display: grid;
-          grid-template-columns: 46px 1fr;
+          grid-template-columns: 44px 1fr;
           gap: 14px;
-          padding: 18px;
+          padding: 17px;
           border: 1px solid #d1d8d3;
+          break-inside: avoid;
         }
 
         .strategy-outcome-list article > span {
@@ -1779,7 +1709,7 @@ export default function ExecutionStrategyReport({
           margin: 7px 0 0;
           color: #637169;
           font-size: 13px;
-          line-height: 1.7;
+          line-height: 1.65;
         }
 
         .strategy-page-footer {
@@ -1787,16 +1717,26 @@ export default function ExecutionStrategyReport({
           right: 52px;
           bottom: 30px;
           left: 52px;
-          display: flex;
-          justify-content: space-between;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
           gap: 20px;
+          align-items: center;
           padding-top: 12px;
           border-top: 1px solid #d8ddd9;
           color: #7b857f;
           font-size: 9px;
         }
 
-        @media (max-width: 760px) {
+        .strategy-page-footer span {
+          display: block;
+          min-width: 0;
+        }
+
+        .strategy-page-footer span:last-child {
+          text-align: right;
+        }
+
+        @media screen and (max-width: 760px) {
           .strategy-page {
             width: min(100% - 20px, 1120px);
             min-height: 0;
@@ -1810,6 +1750,10 @@ export default function ExecutionStrategyReport({
             grid-template-columns: 1fr;
           }
 
+          .strategy-cover {
+            padding-top: 48px;
+          }
+
           .strategy-page-footer {
             right: 22px;
             left: 22px;
@@ -1820,14 +1764,40 @@ export default function ExecutionStrategyReport({
           }
         }
 
+        @page {
+          size: A4;
+          margin: 0;
+        }
+
         @media print {
+          :global(html),
+          :global(body) {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+          }
+
+          :global(body *) {
+            visibility: hidden !important;
+          }
+
+          .strategy-report-shell,
+          .strategy-report-shell * {
+            visibility: visible !important;
+          }
+
           .strategy-report-shell {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 210mm;
+            min-height: 0;
             padding: 0;
             background: #fff;
           }
 
           .strategy-report-controls {
-            display: none;
+            display: none !important;
           }
 
           .strategy-report {
@@ -1838,8 +1808,10 @@ export default function ExecutionStrategyReport({
             width: 210mm;
             min-height: 297mm;
             margin: 0;
-            padding: 14mm 14mm 20mm;
+            padding: 11mm 12mm 18mm;
             border: 0;
+            page-break-inside: avoid;
+            break-inside: avoid-page;
             page-break-after: always;
             break-after: page;
           }
@@ -1850,9 +1822,17 @@ export default function ExecutionStrategyReport({
           }
 
           .strategy-page-footer {
-            right: 14mm;
-            bottom: 8mm;
-            left: 14mm;
+            right: 12mm;
+            bottom: 7mm;
+            left: 12mm;
+          }
+
+          .strategy-cover h1 {
+            font-size: 40px;
+          }
+
+          .strategy-section {
+            margin-top: 8mm;
           }
         }
       `}</style>
