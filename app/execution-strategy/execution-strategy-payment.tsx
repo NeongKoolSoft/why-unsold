@@ -20,6 +20,8 @@ import {
   loadPortOneSdk,
 } from "../lib/portone-browser";
 
+import PreviewStrategyGenerator from "./preview-strategy-generator";
+
 type PaymentMethod =
   | "CARD"
   | "TRANSFER";
@@ -528,6 +530,15 @@ export default function ExecutionStrategyPayment({
         </p>
       )}
 
+      <PreviewStrategyGenerator
+        diagnosis={
+          diagnosis
+        }
+        executionInput={
+          executionInput
+        }
+      />
+      
       <p
         style={{
           margin:

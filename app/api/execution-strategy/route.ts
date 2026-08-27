@@ -39,6 +39,10 @@ import {
   validateExecutionStrategyConstraints,
 } from "../../lib/execution-strategy-validation";
 
+import {
+  PREVIEW_SAMPLE_DIAGNOSIS,
+} from "../../execution-strategy/preview-sample";
+
 const GEMINI_API_BASE =
   "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -1936,12 +1940,43 @@ export async function POST(
       ? body.strategyToken.trim()
       : "";
 
-  const isLocalRecoveryRequest =
-    process.env.NODE_ENV ===
-      "development" &&
+  const recoveryRequested =
     request.headers.get(
       "x-whyunsold-strategy-local-recovery"
     ) === "1";
+
+  const isLocalRecoveryRequest =
+    process.env.NODE_ENV ===
+      "development" &&
+    recoveryRequested;
+
+  let isPreviewSampleRecoveryRequest =
+    false;
+
+  if (
+    process.env.VERCEL_ENV ===
+      "preview" &&
+    recoveryRequested &&
+    diagnosis.reportId ===
+      "PREVIEW-SAMPLE-001"
+  ) {
+    try {
+      isPreviewSampleRecoveryRequest =
+        hashExecutionStrategy(
+          diagnosis
+        ) ===
+        hashExecutionStrategy(
+          PREVIEW_SAMPLE_DIAGNOSIS
+        );
+    } catch {
+      isPreviewSampleRecoveryRequest =
+        false;
+    }
+  }
+
+  const isPaymentRecoveryRequest =
+    isLocalRecoveryRequest ||
+    isPreviewSampleRecoveryRequest;
 
   const strategyPayload =
     buildStrategyPurchasePayload(
@@ -1949,7 +1984,7 @@ export async function POST(
       executionInput
     );
 
-  if (!isLocalRecoveryRequest) {
+  if (!isPaymentRecoveryRequest) {
     if (
       !paymentId.startsWith(
         EXECUTION_STRATEGY_PRODUCT
