@@ -2612,13 +2612,150 @@ export async function POST(
             "PREVIEW-SAMPLE-001" &&
           attempt === 1
         ) {
-          console.error(
-            "[execution-strategy] preview shape mismatch payload",
-            JSON.stringify(
-              parsed,
-              null,
-              2
+          const firstItem = (
+            value:
+              unknown
+          ) =>
+            Array.isArray(
+              value
             )
+              ? value[0]
+              : null;
+
+          const keysOf = (
+            value:
+              unknown
+          ) =>
+            isRecord(
+              value
+            )
+              ? Object.keys(
+                  value
+                )
+              : [];
+
+          const parsedRecord =
+            isRecord(
+              parsed
+            )
+              ? parsed
+              : null;
+
+          const weeklyPlan =
+            firstItem(
+              parsedRecord
+                ?.weeklyPlans
+            );
+
+          const weeklyObservation =
+            isRecord(
+              weeklyPlan
+            )
+              ? firstItem(
+                  weeklyPlan
+                    .observations
+                )
+              : null;
+
+          const weeklyCriterion =
+            isRecord(
+              weeklyPlan
+            )
+              ? firstItem(
+                  weeklyPlan
+                    .decisionCriteria
+                )
+              : null;
+
+          const weeklyAction =
+            isRecord(
+              weeklyPlan
+            )
+              ? firstItem(
+                  weeklyPlan
+                    .actions
+                )
+              : null;
+
+          const responseBranch =
+            firstItem(
+              parsedRecord
+                ?.responseBranches
+            );
+
+          const checklistGroup =
+            firstItem(
+              parsedRecord
+                ?.checklistGroups
+            );
+
+          const checklistItem =
+            isRecord(
+              checklistGroup
+            )
+              ? firstItem(
+                  checklistGroup
+                    .items
+                )
+              : null;
+
+          const day30Decision =
+            parsedRecord
+              ?.day30Decision;
+
+          const day30Outcome =
+            isRecord(
+              day30Decision
+            )
+              ? firstItem(
+                  day30Decision
+                    .outcomes
+                )
+              : null;
+
+          console.error(
+            "[execution-strategy] preview shape keys " +
+              JSON.stringify({
+                weeklyPlan:
+                  keysOf(
+                    weeklyPlan
+                  ),
+
+                weeklyObservation:
+                  keysOf(
+                    weeklyObservation
+                  ),
+
+                weeklyCriterion:
+                  keysOf(
+                    weeklyCriterion
+                  ),
+
+                weeklyAction:
+                  keysOf(
+                    weeklyAction
+                  ),
+
+                responseBranch:
+                  keysOf(
+                    responseBranch
+                  ),
+
+                checklistGroup:
+                  keysOf(
+                    checklistGroup
+                  ),
+
+                checklistItem:
+                  keysOf(
+                    checklistItem
+                  ),
+
+                day30Outcome:
+                  keysOf(
+                    day30Outcome
+                  ),
+              })
           );
         }
 
