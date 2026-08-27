@@ -2491,7 +2491,7 @@ export async function POST(
                     ? {
                         thinkingConfig: {
                           thinkingLevel:
-                            "LOW",
+                            "MEDIUM",
                         },
                       }
                     : {}),
