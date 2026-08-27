@@ -1939,6 +1939,13 @@ export async function POST(
     );
   }
 
+  /*
+   * 위 검증 이후의 API 키를 별도 상수로 고정합니다.
+   * generateSection 내부에서도 string 타입이 유지됩니다.
+   */
+  const geminiApiKey:
+    string = apiKey;
+
   let requestBody:
     unknown;
 
@@ -2293,7 +2300,7 @@ export async function POST(
                   "application/json",
 
                 "x-goog-api-key":
-                  apiKey,
+                  geminiApiKey,
               },
 
               body:
