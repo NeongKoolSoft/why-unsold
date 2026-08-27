@@ -1852,6 +1852,14 @@ function buildUserPrompt(
 - objective와 recommendedStrategy를 최상위에서 분리하십시오.
 - 필드를 최상위에 임의로 펼치거나 새로운 필드를 추가하지 마십시오.
 
+출력 JSON Schema:
+
+${JSON.stringify(
+  executionStrategySchema,
+  null,
+  2
+)}
+
 실행전략 입력:
 
 ${JSON.stringify(
