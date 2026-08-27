@@ -2474,29 +2474,6 @@ export async function POST(
           continue;
         }
 
-        if (
-          containsForbiddenContent(
-            parsed
-          )
-        ) {
-          console.error(
-            "[execution-strategy] forbidden section content",
-            {
-              section:
-                section.name,
-
-              attempt,
-
-              model,
-            }
-          );
-
-          lastError =
-            `${section.name} 결과에 허용되지 않은 가격 또는 내부 표현이 포함됐습니다.`;
-
-          continue;
-        }
-
         return {
           name:
             section.name,
