@@ -43,7 +43,112 @@ type AnalysisResponse = {
   detail?: string;
 };
 
+type GtagFunction = (
+  command: "event",
+  eventName: string,
+  params?: Record<string, unknown>
+) => void;
+
 const REPORT_PRICE = 20000;
+
+function getGtag(): GtagFunction | null {
+  if (
+    typeof window === "undefined"
+  ) {
+    return null;
+  }
+
+  const analyticsWindow =
+    window as typeof window & {
+      gtag?: GtagFunction;
+    };
+
+  return typeof analyticsWindow.gtag ===
+    "function"
+    ? analyticsWindow.gtag
+    : null;
+}
+
+function trackPurchaseComplete(
+  paymentId: string,
+  paymentMethod?: string | null
+) {
+  const gtag = getGtag();
+
+  if (!gtag) {
+    return;
+  }
+
+  const trackingKey =
+    `whyunsold:ga-purchase:${paymentId}`;
+
+  const alreadyTracked =
+    sessionStorage.getItem(
+      trackingKey
+    ) === "1" ||
+    localStorage.getItem(
+      trackingKey
+    ) === "1";
+
+  if (alreadyTracked) {
+    return;
+  }
+
+  // 왜안팔릴까 퍼널 분석용 커스텀 이벤트
+  gtag(
+    "event",
+    "purchase_complete",
+    {
+      payment_id:
+        paymentId,
+      value:
+        REPORT_PRICE,
+      currency:
+        "KRW",
+      payment_method:
+        paymentMethod ??
+        "unknown",
+      item_name:
+        "매도 분석 리포트",
+    }
+  );
+
+  // GA4 표준 전자상거래 구매 이벤트
+  gtag(
+    "event",
+    "purchase",
+    {
+      transaction_id:
+        paymentId,
+      value:
+        REPORT_PRICE,
+      currency:
+        "KRW",
+      items: [
+        {
+          item_id:
+            "WHYUNSOLD_REPORT",
+          item_name:
+            "매도 분석 리포트",
+          price:
+            REPORT_PRICE,
+          quantity: 1,
+        },
+      ],
+    }
+  );
+
+  // 동일 결제의 중복 구매 이벤트 방지
+  sessionStorage.setItem(
+    trackingKey,
+    "1"
+  );
+
+  localStorage.setItem(
+    trackingKey,
+    "1"
+  );
+}
 
 function PaymentSuccessContent() {
   const [
@@ -120,16 +225,19 @@ function PaymentSuccessContent() {
         "/api/analysis",
         {
           method: "POST",
+
           headers: {
             "Content-Type":
               "application/json",
           },
+
           body:
             JSON.stringify({
               diagnosis,
               paymentId,
               analysisToken,
             }),
+
           cache:
             "no-store",
         }
@@ -152,6 +260,7 @@ function PaymentSuccessContent() {
     const finalResult: Diagnosis =
       {
         ...diagnosis,
+
         aiDetailAnalysis:
           analysisData.analysis,
       };
@@ -219,15 +328,18 @@ function PaymentSuccessContent() {
       setMessage(
         "결제번호를 확인할 수 없습니다."
       );
+
       return;
     }
 
     setIsAnalysisRetrying(
       true
     );
+
     setStatus(
       "loading"
     );
+
     setMessage(
       "결제는 완료되었습니다. 매도 분석 리포트를 다시 생성하고 있습니다."
     );
@@ -291,10 +403,14 @@ function PaymentSuccessContent() {
         );
 
       if (!paymentId) {
-        setStatus("error");
+        setStatus(
+          "error"
+        );
+
         setMessage(
           "결제 결과의 결제번호를 확인할 수 없습니다."
         );
+
         return;
       }
 
@@ -307,11 +423,15 @@ function PaymentSuccessContent() {
           `whyunsold:order:${paymentId}`
         );
 
-        setStatus("error");
+        setStatus(
+          "error"
+        );
+
         setMessage(
           paymentErrorMessage ||
             `결제가 완료되지 않았습니다. (${paymentErrorCode})`
         );
+
         return;
       }
 
@@ -336,11 +456,25 @@ function PaymentSuccessContent() {
               cachedResult
             ) as Diagnosis;
 
-          setResult(parsed);
-          setStatus("success");
+          // 이전에 정상 결제가 끝난 결과가 캐시되어 있고
+          // 아직 GA4 구매 이벤트가 기록되지 않았다면 한 번 기록
+          trackPurchaseComplete(
+            paymentId,
+            null
+          );
+
+          setResult(
+            parsed
+          );
+
+          setStatus(
+            "success"
+          );
+
           setMessage(
             "결제가 완료되었습니다."
           );
+
           return;
         } catch {
           sessionStorage.removeItem(
@@ -362,10 +496,14 @@ function PaymentSuccessContent() {
         );
 
       if (!storedOrderRaw) {
-        setStatus("error");
+        setStatus(
+          "error"
+        );
+
         setMessage(
           "결제 전 분석 정보를 찾지 못했습니다. 결제를 시작한 브라우저로 돌아가 다시 확인해주세요."
         );
+
         return;
       }
 
@@ -385,10 +523,14 @@ function PaymentSuccessContent() {
           storageKey
         );
 
-        setStatus("error");
+        setStatus(
+          "error"
+        );
+
         setMessage(
           "저장된 주문 정보를 읽지 못했습니다."
         );
+
         return;
       }
 
@@ -402,10 +544,14 @@ function PaymentSuccessContent() {
           "string" ||
         !storedOrder.orderToken
       ) {
-        setStatus("error");
+        setStatus(
+          "error"
+        );
+
         setMessage(
           "저장된 결제 정보가 결제 결과와 일치하지 않습니다."
         );
+
         return;
       }
 
@@ -418,19 +564,25 @@ function PaymentSuccessContent() {
           await fetch(
             "/api/payment/confirm",
             {
-              method: "POST",
+              method:
+                "POST",
+
               headers: {
                 "Content-Type":
                   "application/json",
               },
+
               body:
                 JSON.stringify({
                   paymentId,
+
                   orderToken:
                     storedOrder.orderToken,
+
                   diagnosis:
                     storedOrder.diagnosis,
                 }),
+
               cache:
                 "no-store",
             }
@@ -451,10 +603,20 @@ function PaymentSuccessContent() {
           );
         }
 
-        setPaymentMethod(
+        const confirmedPaymentMethod =
           confirmData.payment
             ?.method ??
-            null
+          storedOrder.payMethod ??
+          null;
+
+        setPaymentMethod(
+          confirmedPaymentMethod
+        );
+
+        // 서버 결제 검증 성공 후 GA4 구매 이벤트 기록
+        trackPurchaseComplete(
+          paymentId,
+          confirmedPaymentMethod
         );
 
         setPaidDiagnosis(
@@ -475,7 +637,9 @@ function PaymentSuccessContent() {
             paymentId,
             confirmData.analysisToken
           );
-        } catch (analysisError) {
+        } catch (
+          analysisError
+        ) {
           const analysisMessage =
             analysisError instanceof Error
               ? analysisError.message
@@ -522,14 +686,19 @@ function PaymentSuccessContent() {
         style={{
           minHeight:
             "100vh",
+
           display:
             "grid",
+
           placeItems:
             "center",
+
           padding:
             "40px 20px",
+
           background:
             "#f4f2ea",
+
           color:
             "#17231d",
         }}
@@ -538,12 +707,16 @@ function PaymentSuccessContent() {
           style={{
             width:
               "min(680px, 100%)",
+
             padding:
               "48px",
+
             background:
               "#fff",
+
             border:
               "1px solid #d9ddd7",
+
             textAlign:
               "center",
           }}
@@ -551,11 +724,15 @@ function PaymentSuccessContent() {
           <p
             style={{
               margin: 0,
+
               color:
                 "#0b684d",
+
               fontSize: 13,
+
               fontWeight:
                 800,
+
               letterSpacing:
                 "0.08em",
             }}
@@ -568,16 +745,24 @@ function PaymentSuccessContent() {
             style={{
               margin:
                 "18px 0 0",
+
               fontSize:
                 "clamp(28px, 4vw, 38px)",
+
               lineHeight:
                 1.25,
+
               letterSpacing:
                 "-0.04em",
             }}
           >
-            <span>리포트를 생성하고</span>
-            <span>있습니다.</span>
+            <span>
+              리포트를 생성하고
+            </span>
+
+            <span>
+              있습니다.
+            </span>
           </h1>
 
           <p
@@ -585,14 +770,21 @@ function PaymentSuccessContent() {
             style={{
               margin:
                 "18px 0 0",
+
               color:
                 "#66736c",
-              fontSize: 15,
+
+              fontSize:
+                15,
+
               lineHeight:
                 1.8,
             }}
           >
-            <span>{message}</span>
+            <span>
+              {message}
+            </span>
+
             <span>
               매도 상황을 분석하고 있으니 잠시만 기다려주세요.
             </span>
@@ -615,7 +807,9 @@ function PaymentSuccessContent() {
                 line-height: 1.75 !important;
               }
 
-              .payment-success-loading-description span + span {
+              .payment-success-loading-description
+                span
+                + span {
                 margin-top: 8px;
               }
             }
@@ -634,14 +828,19 @@ function PaymentSuccessContent() {
         style={{
           minHeight:
             "100vh",
+
           display:
             "grid",
+
           placeItems:
             "center",
+
           padding:
             "40px 20px",
+
           background:
             "#f4f2ea",
+
           color:
             "#17231d",
         }}
@@ -650,10 +849,13 @@ function PaymentSuccessContent() {
           style={{
             width:
               "min(680px, 100%)",
+
             padding:
               "48px",
+
             background:
               "#fff",
+
             border:
               "1px solid #d9ddd7",
           }}
@@ -661,11 +863,16 @@ function PaymentSuccessContent() {
           <p
             style={{
               margin: 0,
+
               color:
                 "#a33a2b",
-              fontSize: 13,
+
+              fontSize:
+                13,
+
               fontWeight:
                 800,
+
               letterSpacing:
                 "0.08em",
             }}
@@ -679,10 +886,13 @@ function PaymentSuccessContent() {
             style={{
               margin:
                 "18px 0 0",
+
               fontSize:
                 "clamp(30px, 5vw, 44px)",
+
               lineHeight:
                 1.2,
+
               letterSpacing:
                 "-0.04em",
             }}
@@ -696,9 +906,13 @@ function PaymentSuccessContent() {
             style={{
               margin:
                 "18px 0 0",
+
               color:
                 "#66736c",
-              fontSize: 15,
+
+              fontSize:
+                15,
+
               lineHeight:
                 1.8,
             }}
@@ -718,27 +932,42 @@ function PaymentSuccessContent() {
               style={{
                 display:
                   "inline-flex",
-                marginTop: 28,
-                minHeight: 52,
+
+                marginTop:
+                  28,
+
+                minHeight:
+                  52,
+
                 padding:
                   "0 24px",
+
                 alignItems:
                   "center",
+
                 justifyContent:
                   "center",
-                border: 0,
+
+                border:
+                  0,
+
                 background:
                   "#0b684d",
+
                 color:
                   "#fff",
+
                 font:
                   "inherit",
+
                 fontWeight:
                   800,
+
                 cursor:
                   isAnalysisRetrying
                     ? "not-allowed"
                     : "pointer",
+
                 opacity:
                   isAnalysisRetrying
                     ? 0.6
@@ -755,20 +984,31 @@ function PaymentSuccessContent() {
               style={{
                 display:
                   "inline-flex",
-                marginTop: 28,
-                minHeight: 52,
+
+                marginTop:
+                  28,
+
+                minHeight:
+                  52,
+
                 padding:
                   "0 24px",
+
                 alignItems:
                   "center",
+
                 justifyContent:
                   "center",
+
                 background:
                   "#0b684d",
+
                 color:
                   "#fff",
+
                 textDecoration:
                   "none",
+
                 fontWeight:
                   800,
               }}
@@ -781,9 +1021,13 @@ function PaymentSuccessContent() {
             style={{
               margin:
                 "20px 0 0",
+
               color:
                 "#7a857f",
-              fontSize: 12,
+
+              fontSize:
+                12,
+
               lineHeight:
                 1.7,
             }}
@@ -802,6 +1046,7 @@ function PaymentSuccessContent() {
       style={{
         minHeight:
           "100vh",
+
         background:
           "#f4f2ea",
       }}
@@ -810,8 +1055,10 @@ function PaymentSuccessContent() {
         style={{
           width:
             "min(1240px, calc(100% - 32px))",
+
           margin:
             "0 auto",
+
           padding:
             "28px 0 56px",
         }}
@@ -820,26 +1067,35 @@ function PaymentSuccessContent() {
           style={{
             marginBottom:
               24,
+
             padding:
               "18px 22px",
+
             background:
               "#eef4ef",
+
             border:
               "1px solid #cddbd1",
+
             color:
               "#31453a",
-            fontSize: 13,
+
+            fontSize:
+              13,
+
             lineHeight:
               1.7,
           }}
         >
           결제가 정상적으로 완료되었습니다.
+
           {paymentMethod
             ? ` 결제수단: ${paymentMethod}.`
             : ""}
+
           {" "}
-          아래에서 생성된 매도 분석
-          리포트를 확인할 수 있습니다.
+
+          아래에서 생성된 매도 분석 리포트를 확인할 수 있습니다.
         </div>
 
         <DetailReport
@@ -866,16 +1122,18 @@ export default function PaymentSuccessPage() {
           style={{
             minHeight:
               "100vh",
+
             display:
               "grid",
+
             placeItems:
               "center",
+
             background:
               "#f4f2ea",
           }}
         >
-          결제 결과를 확인하고
-          있습니다.
+          결제 결과를 확인하고 있습니다.
         </main>
       }
     >
