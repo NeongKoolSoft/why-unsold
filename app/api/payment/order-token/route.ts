@@ -7,9 +7,17 @@ import {
   createOrderToken,
 } from "../../../lib/payment-security";
 
-const REPORT_PRICE = 20000;
+const PRODUCT_PRICES = {
+  "price-check": 4900,
+  "stagnation-diagnosis": 20000,
+  "execution-strategy": 19900,
+} as const;
+
+type ProductId =
+  keyof typeof PRODUCT_PRICES;
 
 type OrderTokenRequestBody = {
+  productId?: unknown;
   paymentId?: unknown;
   amount?: unknown;
   diagnosis?: unknown;
@@ -29,6 +37,15 @@ function jsonError(
   );
 }
 
+function isProductId(
+  value: string
+): value is ProductId {
+  return Object.prototype.hasOwnProperty.call(
+    PRODUCT_PRICES,
+    value
+  );
+}
+
 export async function POST(
   request: NextRequest
 ) {
@@ -43,6 +60,45 @@ export async function POST(
       400
     );
   }
+
+  /*
+   * 기존 20,000원 결제 요청은 productId를 보내지 않으므로
+   * 매도 정체 진단을 기본 상품으로 처리합니다.
+   */
+  const requestedProductId =
+    typeof body.productId === "string"
+      ? body.productId.trim()
+      : "";
+
+  const productId: ProductId =
+    requestedProductId ||
+    body.productId === undefined
+      ? requestedProductId
+        ? isProductId(
+            requestedProductId
+          )
+          ? requestedProductId
+          : "stagnation-diagnosis"
+        : "stagnation-diagnosis"
+      : "stagnation-diagnosis";
+
+  /*
+   * productId가 전달됐지만 등록된 상품이 아니면 거부합니다.
+   */
+  if (
+    requestedProductId &&
+    !isProductId(
+      requestedProductId
+    )
+  ) {
+    return jsonError(
+      "올바르지 않은 상품입니다.",
+      400
+    );
+  }
+
+  const reportPrice =
+    PRODUCT_PRICES[productId];
 
   const paymentId =
     typeof body.paymentId === "string"
@@ -81,9 +137,13 @@ export async function POST(
       ? body.amount
       : Number.NaN;
 
+  /*
+   * 클라이언트가 보낸 금액과
+   * 서버에 등록된 상품 가격이 동일한지 확인합니다.
+   */
   if (
     !Number.isFinite(amount) ||
-    amount !== REPORT_PRICE
+    amount !== reportPrice
   ) {
     return jsonError(
       "결제 금액이 올바르지 않습니다.",
@@ -109,12 +169,14 @@ export async function POST(
     const orderToken =
       createOrderToken(
         paymentId,
-        REPORT_PRICE,
+        reportPrice,
         body.diagnosis
       );
 
     return NextResponse.json({
       ok: true,
+      productId,
+      amount: reportPrice,
       orderToken,
     });
   } catch (error) {

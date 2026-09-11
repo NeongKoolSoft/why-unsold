@@ -4,41 +4,60 @@ import {
 } from "next/server";
 
 import {
-  createAnalysisToken,
-  hashDiagnosis,
-  verifyOrderToken,
-} from "../../../lib/payment-security";
+  EXECUTION_STRATEGY_PRODUCT,
+} from "../../../lib/execution-strategy-config";
+
+import {
+  createStrategyGenerationToken,
+  hashExecutionStrategy,
+  verifyStrategyOrderToken,
+} from "../../../lib/execution-strategy-security";
+
+import {
+  buildStrategyPurchasePayload,
+  isDiagnosisForStrategy,
+  isExecutionStrategyInput,
+  validateExecutionStrategyConstraints,
+} from "../../../lib/execution-strategy-validation";
 
 const PORTONE_API_BASE =
   "https://api.portone.io";
 
-const SUPPORTED_PAYMENT_AMOUNTS =
-  new Set([
-    4900,
-    20000,
-    19900,
-  ]);
-
-type ConfirmRequestBody = {
+type StrategyConfirmRequestBody = {
   paymentId?: unknown;
+
   orderToken?: unknown;
+
   diagnosis?: unknown;
+
+  executionInput?: unknown;
 };
 
 type PortOnePayment = {
   status?: string;
+
   id?: string;
+
   transactionId?: string;
+
   merchantId?: string;
+
   storeId?: string;
+
   amount?: {
     total?: number;
+
     taxFree?: number;
+
     vat?: number;
   };
+
   currency?: string;
+
   orderName?: string;
+
   paidAt?: string | null;
+
   paymentMethod?: {
     type?: string;
   };
@@ -46,6 +65,7 @@ type PortOnePayment = {
 
 type PortOneErrorResponse = {
   type?: string;
+
   message?: string;
 };
 
@@ -57,8 +77,11 @@ function jsonError(
   return NextResponse.json(
     {
       error: message,
+
       ...(detail
-        ? { detail }
+        ? {
+            detail,
+          }
         : {}),
     },
     {
@@ -71,7 +94,8 @@ export async function POST(
   request: NextRequest
 ) {
   const apiSecret =
-    process.env.PORTONE_API_SECRET?.trim();
+    process.env
+      .PORTONE_API_SECRET?.trim();
 
   const expectedStoreId =
     process.env
@@ -91,30 +115,31 @@ export async function POST(
     );
   }
 
-  let body: ConfirmRequestBody;
+  let body:
+    StrategyConfirmRequestBody;
 
   try {
     body =
-      (await request.json()) as ConfirmRequestBody;
+      (await request.json()) as
+        StrategyConfirmRequestBody;
   } catch {
     return jsonError(
-      "결제 확인 요청 형식이 올바르지 않습니다.",
+      "실행전략 결제 확인 요청 형식이 올바르지 않습니다.",
       400
     );
   }
 
   const paymentId =
-    typeof body.paymentId === "string"
+    typeof body.paymentId ===
+      "string"
       ? body.paymentId.trim()
       : "";
 
   const orderToken =
-    typeof body.orderToken === "string"
+    typeof body.orderToken ===
+      "string"
       ? body.orderToken.trim()
       : "";
-
-  const diagnosis =
-    body.diagnosis;
 
   if (!paymentId) {
     return jsonError(
@@ -125,122 +150,144 @@ export async function POST(
 
   if (
     !paymentId.startsWith(
-      "WHYUNSOLD"
+      EXECUTION_STRATEGY_PRODUCT
+        .paymentPrefix
     ) ||
     paymentId.length > 40
   ) {
     return jsonError(
-      "올바르지 않은 결제번호입니다.",
+      "올바르지 않은 실행전략 결제번호입니다.",
       400
     );
   }
 
   if (!orderToken) {
     return jsonError(
-      "주문 보안정보를 확인할 수 없습니다.",
+      "실행전략 주문 보안정보를 확인할 수 없습니다.",
       400
     );
   }
 
   if (
-    !diagnosis ||
-    typeof diagnosis !==
-      "object" ||
-    Array.isArray(diagnosis)
+    !isDiagnosisForStrategy(
+      body.diagnosis
+    )
   ) {
     return jsonError(
-      "분석 정보를 확인할 수 없습니다.",
+      "결제가 완료된 매도진단 결과가 필요합니다.",
       400
     );
   }
 
-  /*
-   * 결제 전 서버가 발급한 주문 토큰을 검증합니다.
-   * paymentId + 금액 + 분석정보 해시가
-   * 결제 당시 값과 동일해야 합니다.
-   */
+  if (
+    !isExecutionStrategyInput(
+      body.executionInput
+    )
+  ) {
+    return jsonError(
+      "실행전략 입력 정보를 확인해주세요.",
+      400
+    );
+  }
+
+  const diagnosis =
+    body.diagnosis;
+
+  const executionInput =
+    body.executionInput;
+
+  const constraintError =
+    validateExecutionStrategyConstraints(
+      diagnosis,
+      executionInput
+    );
+
+  if (constraintError) {
+    return jsonError(
+      constraintError,
+      400
+    );
+  }
+
+  const strategyPayload =
+    buildStrategyPurchasePayload(
+      diagnosis,
+      executionInput
+    );
+
   let verifiedOrder;
 
   try {
     verifiedOrder =
-      verifyOrderToken(
+      verifyStrategyOrderToken(
         orderToken
       );
   } catch (error) {
     console.error(
-      "[payment/confirm] order token verification error",
+      "[payment/strategy-confirm] order token verification error",
       error
     );
 
     return jsonError(
-      "주문 보안정보를 검증하지 못했습니다.",
+      "실행전략 주문 보안정보를 검증하지 못했습니다.",
       500
     );
   }
 
   if (!verifiedOrder) {
     return jsonError(
-      "주문 보안정보가 올바르지 않거나 만료되었습니다.",
+      "실행전략 주문 보안정보가 올바르지 않거나 만료되었습니다.",
       409
     );
   }
 
   if (
     verifiedOrder.paymentId !==
-    paymentId
+      paymentId
   ) {
     return jsonError(
-      "주문 결제번호가 일치하지 않습니다.",
+      "실행전략 주문 결제번호가 일치하지 않습니다.",
       409
     );
   }
-
-  /*
-   * 주문 토큰에 기록된 금액을
-   * 이번 결제의 검증 기준으로 사용합니다.
-   */
-  const expectedAmount =
-    verifiedOrder.amount;
 
   if (
-    !SUPPORTED_PAYMENT_AMOUNTS.has(
-      expectedAmount
-    )
+    verifiedOrder.amount !==
+      EXECUTION_STRATEGY_PRODUCT
+        .price
   ) {
     return jsonError(
-      "지원하지 않는 상품 금액입니다.",
+      "실행전략 주문 금액이 올바르지 않습니다.",
       409
     );
   }
 
-  let diagnosisHash: string;
+  let strategyHash: string;
 
   try {
-    diagnosisHash =
-      hashDiagnosis(
-        diagnosis
+    strategyHash =
+      hashExecutionStrategy(
+        strategyPayload
       );
   } catch {
     return jsonError(
-      "분석 정보의 형식이 올바르지 않습니다.",
+      "실행전략 정보의 형식이 올바르지 않습니다.",
       400
     );
   }
 
   if (
-    verifiedOrder.diagnosisHash !==
-    diagnosisHash
+    verifiedOrder.strategyHash !==
+      strategyHash
   ) {
     return jsonError(
-      "결제 당시 분석 정보와 현재 분석 정보가 일치하지 않습니다.",
+      "결제 당시 실행전략 정보와 현재 정보가 일치하지 않습니다.",
       409
     );
   }
 
-  /*
-   * PortOne 서버에서 실제 결제 상태를 다시 조회합니다.
-   */
-  let portOneResponse: Response;
+  let portOneResponse:
+    Response;
 
   try {
     portOneResponse =
@@ -249,12 +296,16 @@ export async function POST(
           paymentId
         )}`,
         {
-          method: "GET",
+          method:
+            "GET",
+
           headers: {
             Authorization:
               `PortOne ${apiSecret}`,
           },
-          cache: "no-store",
+
+          cache:
+            "no-store",
         }
       );
   } catch {
@@ -283,10 +334,11 @@ export async function POST(
 
   if (!portOneResponse.ok) {
     const error =
-      responseBody as PortOneErrorResponse;
+      responseBody as
+        PortOneErrorResponse;
 
     return jsonError(
-      "결제 정보를 확인하지 못했습니다.",
+      "실행전략 결제 정보를 확인하지 못했습니다.",
       portOneResponse.status,
       error.message ||
         error.type ||
@@ -295,26 +347,20 @@ export async function POST(
   }
 
   const payment =
-    responseBody as PortOnePayment;
+    responseBody as
+      PortOnePayment;
 
-  /*
-   * 결제번호는 응답에 반드시 존재하고
-   * 요청한 paymentId와 동일해야 합니다.
-   */
   if (
     !payment.id ||
-    payment.id !== paymentId
+    payment.id !==
+      paymentId
   ) {
     return jsonError(
-      "조회된 결제번호가 요청 정보와 일치하지 않습니다.",
+      "조회된 실행전략 결제번호가 요청 정보와 일치하지 않습니다.",
       409
     );
   }
 
-  /*
-   * Store ID도 반드시 존재하고
-   * 우리 상점과 동일해야 합니다.
-   */
   if (
     !payment.storeId ||
     payment.storeId !==
@@ -326,32 +372,27 @@ export async function POST(
     );
   }
 
-  /*
-   * PortOne에서 확인된 실제 결제금액이
-   * 주문 토큰에 기록된 금액과 같은지 확인합니다.
-   */
   if (
     payment.amount?.total !==
-    expectedAmount
+      EXECUTION_STRATEGY_PRODUCT
+        .price
   ) {
     return jsonError(
-      "결제 금액이 올바르지 않습니다.",
+      "실행전략 결제 금액이 올바르지 않습니다.",
       409,
-      `주문 금액: ${expectedAmount}, 확인된 결제 금액: ${
+      `확인된 결제 금액: ${
         payment.amount?.total ??
         "UNKNOWN"
       }`
     );
   }
 
-  /*
-   * 통화도 누락 없이 KRW여야 합니다.
-   */
   if (
-    payment.currency !== "KRW"
+    payment.currency !==
+      "KRW"
   ) {
     return jsonError(
-      "결제 통화가 올바르지 않습니다.",
+      "실행전략 결제 통화가 올바르지 않습니다.",
       409,
       `확인된 결제 통화: ${
         payment.currency ??
@@ -360,14 +401,12 @@ export async function POST(
     );
   }
 
-  /*
-   * 실제 결제 완료 상태를 확인합니다.
-   */
   if (
-    payment.status !== "PAID"
+    payment.status !==
+      "PAID"
   ) {
     return jsonError(
-      "결제가 정상적으로 완료되지 않았습니다.",
+      "실행전략 결제가 정상적으로 완료되지 않았습니다.",
       409,
       `결제 상태: ${
         payment.status ??
@@ -376,28 +415,25 @@ export async function POST(
     );
   }
 
-  /*
-   * 여기까지 통과한 경우에만
-   * 해당 분석정보와 결제금액에 대한
-   * 분석 토큰을 발급합니다.
-   */
-  let analysisToken: string;
+  let strategyToken:
+    string;
 
   try {
-    analysisToken =
-      createAnalysisToken(
+    strategyToken =
+      createStrategyGenerationToken(
         paymentId,
-        expectedAmount,
-        diagnosis
+        EXECUTION_STRATEGY_PRODUCT
+          .price,
+        strategyPayload
       );
   } catch (error) {
     console.error(
-      "[payment/confirm] analysis token creation error",
+      "[payment/strategy-confirm] generation token creation error",
       error
     );
 
     return jsonError(
-      "분석 보안정보를 생성하지 못했습니다.",
+      "실행전략 생성 보안정보를 만들지 못했습니다.",
       500
     );
   }
@@ -405,7 +441,7 @@ export async function POST(
   return NextResponse.json({
     ok: true,
 
-    analysisToken,
+    strategyToken,
 
     payment: {
       paymentId:

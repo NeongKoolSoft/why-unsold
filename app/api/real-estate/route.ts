@@ -52,12 +52,21 @@ function normalizeLegalDong(value: string) {
   return value.replace(/\s+/g, "").toLocaleLowerCase("ko-KR");
 }
 
-function matchesExclusiveArea(actualArea: number, requestedArea: number) {
-  if (Number.isInteger(requestedArea)) {
-    return Math.floor(actualArea) === requestedArea;
+function matchesExclusiveArea(
+  actualArea: number,
+  requestedArea: number
+) {
+  if (
+    !Number.isFinite(actualArea) ||
+    !Number.isFinite(requestedArea)
+  ) {
+    return false;
   }
 
-  return Math.abs(actualArea - requestedArea) <= 0.1;
+  return (
+    Math.floor(actualArea) ===
+    Math.floor(requestedArea)
+  );
 }
 
 function previousYearMonths(endYmd: string, count: number) {

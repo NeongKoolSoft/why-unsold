@@ -294,7 +294,7 @@ function createPaymentId() {
   ).slice(0, 40);
 }
 
-const REGIONS: readonly Region[] = [
+export const REGIONS: readonly Region[] = [
   {
     name: "서울특별시",
     districts: [
@@ -2197,7 +2197,7 @@ export default function DiagnosisForm() {
         throw new Error(
           analysisData.detail ||
             analysisData.error ||
-            "매도 분석 리포트 생성에 실패했습니다."
+            "매도 정체 진단 생성에 실패했습니다."
         );
       }
 
@@ -2231,7 +2231,7 @@ export default function DiagnosisForm() {
       const message =
         error instanceof Error
           ? error.message
-          : "매도 분석 리포트 생성에 실패했습니다.";
+          : "매도 정체 진단 생성에 실패했습니다.";
 
       setReportError(
         message
@@ -2262,7 +2262,7 @@ export default function DiagnosisForm() {
         payment_method:
           selectedPayMethod,
         item_name:
-          "매도 분석 리포트",
+          "매도 정체 진단",
       }
     );
 
@@ -2393,7 +2393,7 @@ export default function DiagnosisForm() {
             channelKey,
             paymentId,
             orderName:
-              "매도 분석 리포트",
+              "매도 정체 진단",
             totalAmount:
               REPORT_PRICE,
             currency:
@@ -2472,21 +2472,23 @@ export default function DiagnosisForm() {
     <div className="diagnosis-form">
       <div className="form-heading">
         <p className="section-index">
-          04 / 정보 입력
+          04 / 매도 중 진단
         </p>
 
         <div>
           <h2>
-            매물 정보를 넣으면
+            현재 매도 상황을 넣으면
             <br />
-            분석 리포트가 완성됩니다.
+            정체 진단을 준비합니다.
           </h2>
 
           <p>
-            공개 실거래 자료와 사용자가
-            입력한 매도 상황을 함께
-            분석합니다. 동·호수와 소유자
-            정보는 받지 않습니다.
+            먼저 공개 실거래 자료와
+            입력 정보를 확인합니다.
+            결제가 승인된 뒤 AI 기반
+            매도 정체 진단 리포트를
+            생성합니다. 거래 성사를
+            보장하지 않습니다.
           </p>
         </div>
       </div>
@@ -3306,7 +3308,7 @@ export default function DiagnosisForm() {
                     fontSize: 15,
                   }}
                 >
-                  매도 분석 리포트
+                  매도 정체 진단
                 </strong>
 
                 <strong
@@ -3331,8 +3333,9 @@ export default function DiagnosisForm() {
                 }}
               >
                 결제가 완료되면 AI 분석을 시작하고
-                매도 정체 원인, 가격 전략과 30일
-                실행 계획을 포함한 리포트를 생성합니다.
+                매도 정체 원인, 가격 위치와
+                가격 조정 시나리오를 포함한
+                진단 리포트를 생성합니다.                              
               </p>
             </div>
 
@@ -3531,8 +3534,8 @@ export default function DiagnosisForm() {
             실거래·가격 위치·거래
             유동성·문의와 방문
             흐름을 종합하여 매도
-            정체 원인과 실행 전략을
-            정리하고 있습니다.
+            정체 원인과 가격 전략을
+            정리하고 있습니다.            
           </p>
         </div>
       )}

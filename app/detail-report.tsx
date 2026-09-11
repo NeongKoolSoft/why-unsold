@@ -1,6 +1,7 @@
 "use client";
 
 import type { Diagnosis } from "./report-types";
+import StrategyEntryCard from "./execution-strategy/strategy-entry-card";
 
 type DetailReportProps = {
   result: Diagnosis;
@@ -1651,6 +1652,8 @@ export default function DetailReport({
           </footer>
         </article>
       </div>
+
+      <StrategyEntryCard diagnosis={result} />
 
       <div className="report-controls">
         <button

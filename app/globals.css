@@ -475,15 +475,17 @@ a {
 
 .pricing-cards {
   display: grid;
-  grid-template-columns: minmax(0, 760px);
-  justify-content: center;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
   align-items: stretch;
 }
 
 .pricing-card {
   position: relative;
-  padding: 38px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 34px 28px;
   border: 1px solid var(--ink);
   background: #fff;
 }
@@ -528,6 +530,7 @@ a {
 }
 
 .pricing-card ul {
+  flex: 1;
   margin: 0 0 28px;
   padding: 24px 0;
   border: solid #dfe2df;
@@ -2179,6 +2182,14 @@ main > footer > a:last-child {
     grid-template-columns: 1fr;
     gap: 20px;
   }
+
+  .pricing-cards {
+    width: 100%;
+    max-width: 760px;
+    margin-right: auto;
+    margin-left: auto;
+    grid-template-columns: 1fr;
+  }  
 
   .section-index {
     margin-bottom: 24px;
