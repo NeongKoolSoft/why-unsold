@@ -90,7 +90,37 @@ type PortOneBrowserSdk = {
 declare global {
   interface Window {
     PortOne?: PortOneBrowserSdk;
+
+    gtag?: (
+      command: "event",
+      eventName: string,
+      params?: Record<
+        string,
+        string | number | boolean
+      >
+    ) => void;
   }
+}
+
+function trackGaEvent(
+  eventName: string,
+  params?: Record<
+    string,
+    string | number | boolean
+  >
+) {
+  if (
+    typeof window === "undefined" ||
+    typeof window.gtag !== "function"
+  ) {
+    return;
+  }
+
+  window.gtag(
+    "event",
+    eventName,
+    params
+  );
 }
 
 const REPORT_PRICE = 20000;
@@ -1984,9 +2014,20 @@ export default function DiagnosisForm() {
       return;
     }
 
+    trackGaEvent(
+      "diagnosis_start",
+      {
+        region:
+          region.name,
+        district:
+          district[1],
+      }
+    );
+
     setIsPreparingPayment(
       true
     );
+
     setStalePaymentId("");
     setIsStalePaymentPage(false);
     setLookupError("");
@@ -2210,6 +2251,20 @@ export default function DiagnosisForm() {
     ) {
       return;
     }
+
+    trackGaEvent(
+      "purchase_click",
+      {
+        value:
+          REPORT_PRICE,
+        currency:
+          "KRW",
+        payment_method:
+          selectedPayMethod,
+        item_name:
+          "매도 분석 리포트",
+      }
+    );
 
     const storeId =
       process.env
