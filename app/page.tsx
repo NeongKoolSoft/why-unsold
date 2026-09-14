@@ -76,28 +76,24 @@ export default function Home() {
           </p>
 
           <h1>
-            팔기 전부터,
+            내 아파트,
             <br />
             <strong>
-              매도가 막힌 뒤까지
+              얼마에 내놓아야 할까?
             </strong>
-            <br />
-            단계에 맞게 봅니다.
           </h1>
 
           <p className="hero-description">
-            매도 전에는 희망가격을 점검하고,
-            매도 중에는 정체 원인을 진단합니다.
-            진단 후에는 30일 실행전략으로
-            다음 행동과 판단 기준을 정리합니다.
+            팔기 전 가격부터, 안 팔릴 때 원인까지
+            최근 실거래와 거래 흐름으로 진단합니다.
           </p>
 
           <div className="hero-actions">
             <a
               className="primary-button"
-              href="#services"
+              href="/price-check"
             >
-              내 단계에 맞는 진단 보기
+              내 아파트 매도가격 확인하기
             </a>
 
             <a
