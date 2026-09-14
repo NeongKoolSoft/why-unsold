@@ -1533,7 +1533,13 @@ useEffect(() => {
     );
   }
 
-  function showStalePaymentPage() {
+  function handlePageShow() {
+    // 이 페이지에서 실제로 결제창을 열던 중이었던 경우만
+    // 이전 결제 화면으로 판단한다.
+    if (!isOpeningPayment) {
+      return;
+    }
+
     const paymentId =
       getStartedPaymentId();
 
@@ -1548,17 +1554,6 @@ useEffect(() => {
       paymentId
     );
     setIsStalePaymentPage(true);
-  }
-
-  function handlePageShow(
-    event: PageTransitionEvent
-  ) {
-    if (
-      event.persisted ||
-      isOpeningPayment
-    ) {
-      showStalePaymentPage();
-    }
   }
 
   window.addEventListener(
