@@ -755,6 +755,15 @@ export default function Home() {
           </div>
         )}
       </footer>
+
+      <style>{`
+        @media (max-width: 900px) {
+          .hero-report {
+            display: none !important;
+          }
+        }
+      `}</style>
+
     </main>
   );
 }
