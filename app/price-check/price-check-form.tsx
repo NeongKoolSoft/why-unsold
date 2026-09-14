@@ -77,6 +77,39 @@ function formatArea(
     : area.toFixed(2);
 }
 
+function trackGaEvent(
+  eventName: string,
+  params?: Record<
+    string,
+    string | number
+  >
+) {
+  const analyticsWindow =
+    window as typeof window & {
+      gtag?: (
+        command: "event",
+        eventName: string,
+        params?: Record<
+          string,
+          string | number
+        >
+      ) => void;
+    };
+
+  if (
+    typeof analyticsWindow.gtag !==
+    "function"
+  ) {
+    return;
+  }
+
+  analyticsWindow.gtag(
+    "event",
+    eventName,
+    params
+  );
+}
+
 export default function PriceCheckForm() {
   const [
     regionName,
@@ -233,26 +266,26 @@ export default function PriceCheckForm() {
       }
 
       const availableApartments =
-      [
+        [
           ...(
-          data.availableApartments ??
-          []
+            data.availableApartments ??
+            []
           ),
-      ].sort(
+        ].sort(
           (
-          left,
-          right
+            left,
+            right
           ) =>
-          left.localeCompare(
+            left.localeCompare(
               right,
               "ko-KR",
               {
-              numeric: true,
-              sensitivity:
+                numeric: true,
+                sensitivity:
                   "base",
               }
-          )
-      );
+            )
+        );
 
       if (
         availableApartments.length ===
@@ -401,6 +434,20 @@ export default function PriceCheckForm() {
       );
       return;
     }
+
+    trackGaEvent(
+      "price_check_start",
+      {
+        item_id:
+          "PRICE_CHECK",
+        item_name:
+          "매도 전 가격 진단",
+        region:
+          regionName,
+        district:
+          districtName,
+      }
+    );
 
     setError("");
     setOrderData(null);
@@ -835,11 +882,11 @@ export default function PriceCheckForm() {
       </form>
 
       {orderData ? (
-      <PriceCheckPayment
+        <PriceCheckPayment
           orderData={
-          orderData
+            orderData
           }
-      />
+        />
       ) : null}
 
       <style jsx>{`
