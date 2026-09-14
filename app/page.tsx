@@ -52,9 +52,9 @@ export default function Home() {
 
         <a
           className="nav-link"
-          href="#services"
+          href="#products"
         >
-          단계별 진단
+          상품 선택
         </a>
 
         <a
@@ -214,125 +214,13 @@ export default function Home() {
       </section>
 
       <section
-        className="difference-section"
-        id="services"
-        aria-labelledby="services-title"
-      >
-        <div className="section-heading">
-          <p className="section-index">
-            01 / 단계별 진단
-          </p>
-
-          <h2 id="services-title">
-            지금 어느 단계인지부터
-            <br />
-            선택하세요.
-          </h2>
-        </div>
-
-        <div className="difference-grid">
-          <article>
-            <span className="card-number">
-              01
-            </span>
-
-            <p className="section-index">
-              매도 전
-            </p>
-
-            <h3>
-              내놓기 전 가격부터 점검합니다
-            </h3>
-
-            <p>
-              최근 동일 면적 실거래와 단지 거래 흐름을
-              기준으로 입력한 희망가격의 위치를 확인합니다.
-              아직 매물을 등록하지 않은 단계에 맞는
-              가격 진단입니다.
-            </p>
-
-            <a
-              className="text-button"
-              href="/price-check"
-            >
-              매도 전 가격 진단 · 4,900원{" "}
-              <span aria-hidden="true">
-                →
-              </span>
-            </a>
-          </article>
-
-          <article>
-            <span className="card-number">
-              02
-            </span>
-
-            <p className="section-index">
-              매도 중
-            </p>
-
-            <h3>
-              왜 멈췄는지 원인을 진단합니다
-            </h3>
-
-            <p>
-              실거래·경쟁 매물·거래 유동성과
-              문의·방문·협상 흐름을 함께 분석해
-              현재 매도 과정에서 가장 가능성 높은
-              정체 원인을 찾습니다.
-            </p>
-
-            <a
-              className="text-button"
-              href="#application"
-            >
-              매도 정체 진단 · 20,000원{" "}
-              <span aria-hidden="true">
-                →
-              </span>
-            </a>
-          </article>
-
-          <article>
-            <span className="card-number">
-              03
-            </span>
-
-            <p className="section-index">
-              진단 후 실행
-            </p>
-
-            <h3>
-              진단을 30일 행동으로 옮깁니다
-            </h3>
-
-            <p>
-              진단 결과를 바탕으로 앞으로 30일 동안
-              무엇을 확인하고 언제 전략을 유지하거나
-              조정할지 실행 순서와 판단 기준을 정리합니다.
-            </p>
-
-            <a
-              className="text-button"
-              href="/execution-strategy"
-            >
-              30일 실행전략 · 19,900원{" "}
-              <span aria-hidden="true">
-                →
-              </span>
-            </a>
-          </article>
-        </div>
-      </section>
-
-      <section
         className="sample-section"
         id="sample"
         aria-labelledby="sample-title"
       >
         <div className="section-heading light">
           <p className="section-index">
-            02 / 제공 내용
+            01 / 제공 내용
           </p>
 
           <h2 id="sample-title">
@@ -434,7 +322,7 @@ export default function Home() {
       >
         <div className="section-heading">
           <p className="section-index">
-            03 / 상품 선택
+            02 / 상품 선택
           </p>
 
           <h2 id="pricing-title">
@@ -763,7 +651,6 @@ export default function Home() {
           }
         }
       `}</style>
-
     </main>
   );
 }
