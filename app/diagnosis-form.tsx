@@ -1520,86 +1520,59 @@ export default function DiagnosisForm() {
       null
     );
 
-  useEffect(() => {
-    function getStoredPaymentId() {
-      return (
-        sessionStorage.getItem(
-          PAYMENT_STARTED_KEY
-        ) ??
-        localStorage.getItem(
-          PAYMENT_STARTED_KEY
-        ) ??
-        sessionStorage.getItem(
-          "whyunsold:last-payment-id"
-        ) ??
-        localStorage.getItem(
-          "whyunsold:last-payment-id"
-        ) ??
-        ""
-      );
+useEffect(() => {
+  function getStartedPaymentId() {
+    return (
+      sessionStorage.getItem(
+        PAYMENT_STARTED_KEY
+      ) ??
+      localStorage.getItem(
+        PAYMENT_STARTED_KEY
+      ) ??
+      ""
+    );
+  }
+
+  function showStalePaymentPage() {
+    const paymentId =
+      getStartedPaymentId();
+
+    if (!paymentId) {
+      return;
     }
 
-    function showStalePaymentPage() {
-      const paymentId =
-        getStoredPaymentId();
+    setIsOpeningPayment(false);
+    setPendingDiagnosis(null);
+    setAgreedToPaymentTerms(false);
+    setStalePaymentId(
+      paymentId
+    );
+    setIsStalePaymentPage(true);
+  }
 
-      if (!paymentId) {
-        return;
-      }
-
-      setIsOpeningPayment(false);
-      setPendingDiagnosis(null);
-      setAgreedToPaymentTerms(false);
-      setStalePaymentId(
-        paymentId
-      );
-      setIsStalePaymentPage(true);
-    }
-
-    function isHistoryTraversal() {
-      const navigationEntry =
-        performance.getEntriesByType(
-          "navigation"
-        )[0] as
-          | PerformanceNavigationTiming
-          | undefined;
-
-      return (
-        navigationEntry?.type ===
-        "back_forward"
-      );
-    }
-
-    function handlePageShow(
-      event: PageTransitionEvent
-    ) {
-      if (
-        event.persisted ||
-        isOpeningPayment ||
-        isHistoryTraversal()
-      ) {
-        showStalePaymentPage();
-      }
-    }
-
+  function handlePageShow(
+    event: PageTransitionEvent
+  ) {
     if (
-      isHistoryTraversal()
+      event.persisted ||
+      isOpeningPayment
     ) {
       showStalePaymentPage();
     }
+  }
 
-    window.addEventListener(
+  window.addEventListener(
+    "pageshow",
+    handlePageShow
+  );
+
+  return () => {
+    window.removeEventListener(
       "pageshow",
       handlePageShow
     );
-
-    return () => {
-      window.removeEventListener(
-        "pageshow",
-        handlePageShow
-      );
-    };
-  }, [isOpeningPayment]);
+  };
+}, [isOpeningPayment]);
 
   const selectedRegion =
     REGIONS.find(
