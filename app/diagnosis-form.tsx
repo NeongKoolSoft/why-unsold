@@ -1746,7 +1746,7 @@ useEffect(() => {
       );
 
       setApartmentLookupMessage(
-        `실거래 자료에서 단지 ${normalizedApartments.length}개를 찾았습니다. 아파트명을 입력하고 목록에서 선택해주세요.`
+        `실거래 자료에서 단지 ${normalizedApartments.length}개를 찾았습니다. 아래 목록에서 아파트 단지를 선택해주세요.`
       );
     } catch (error) {
       setApartmentLookupError(
@@ -2440,7 +2440,7 @@ useEffect(() => {
     <div className="diagnosis-form">
       <div className="form-heading">
         <p className="section-index">
-          04 / 매도 중 진단
+          01 / 매도 정체 진단
         </p>
 
         <div>
@@ -2617,37 +2617,66 @@ useEffect(() => {
                   gap: 8,
                 }}
               >
-                <input
-                  name="apartmentName"
-                  required
-                  list="apartment-name-options"
-                  value={
-                    selectedApartmentName
-                  }
-                  placeholder="예: 리센츠"
-                  onChange={(
-                    event
-                  ) => {
-                    const value =
-                      event.target.value;
+                {availableApartments.length > 0 ? (
+                  <select
+                    name="apartmentName"
+                    required
+                    value={
+                      selectedApartmentName
+                    }
+                    onChange={(
+                      event
+                    ) => {
+                      const value =
+                        event.target.value;
 
-                    setSelectedApartmentName(
-                      value
-                    );
+                      setSelectedApartmentName(
+                        value
+                      );
 
-                    resetAreaOptions();
-
-                    if (
-                      availableApartments.includes(
-                        value.trim()
-                      )
-                    ) {
+                      resetAreaOptions();
                       setApartmentLookupError(
                         ""
                       );
+                    }}
+                  >
+                    <option
+                      value=""
+                      disabled
+                    >
+                      아파트 단지를 선택하세요
+                    </option>
+
+                    {availableApartments.map(
+                      (name) => (
+                        <option
+                          value={name}
+                          key={name}
+                        >
+                          {name}
+                        </option>
+                      )
+                    )}
+                  </select>
+                ) : (
+                  <input
+                    name="apartmentName"
+                    required
+                    value={
+                      selectedApartmentName
                     }
-                  }}
-                />
+                    placeholder="예: 리센츠"
+                    onChange={(
+                      event
+                    ) => {
+                      setSelectedApartmentName(
+                        event.target.value
+                      );
+
+                      resetAreaOptions();
+                    }}
+                  />
+                )}
 
                 <button
                   type="button"
@@ -2694,17 +2723,6 @@ useEffect(() => {
                 </button>
               </div>
 
-              <datalist id="apartment-name-options">
-                {availableApartments.map(
-                  (name) => (
-                    <option
-                      value={name}
-                      key={name}
-                    />
-                  )
-                )}
-              </datalist>
-
               <small
                 style={{
                   display: "block",
@@ -2715,9 +2733,9 @@ useEffect(() => {
                   fontWeight: 400,
                 }}
               >
-                단지명을 알고 있다면 직접 입력할 수 있습니다.
-                단지 불러오기는 오타 방지를 위한 보조 기능이며,
-                실제 조회 시 입력한 동·단지명을 다시 확인합니다.
+                {availableApartments.length > 0
+                  ? "조회된 단지 목록에서 선택해주세요. 단지를 다시 조회하려면 동을 수정한 뒤 단지 불러오기를 눌러주세요."
+                  : "단지명을 알고 있다면 직접 입력할 수 있습니다. 단지 불러오기를 누르면 조회된 단지를 선택 목록으로 제공합니다."}
               </small>
             </label>
 

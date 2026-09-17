@@ -1,5 +1,3 @@
-import DiagnosisForm from "./diagnosis-form";
-
 const signals = [
   {
     value: "29억 2,000만원",
@@ -91,7 +89,7 @@ export default function Home() {
           <div className="hero-actions">
             <a
               className="primary-button"
-              href="/price-check"
+              href="#price-check-product"
             >
               내 아파트 매도가격 확인하기
             </a>
@@ -333,7 +331,10 @@ export default function Home() {
         </div>
 
         <div className="pricing-cards">
-          <div className="pricing-card">
+          <div
+            className="pricing-card"
+            id="price-check-product"
+          >
             <span className="recommended">
               매도 전
             </span>
@@ -439,7 +440,7 @@ export default function Home() {
 
             <a
               className="primary-button dark"
-              href="#application"
+              href="/diagnosis"
             >
               매도 정체 진단 시작하기
             </a>
@@ -563,14 +564,6 @@ export default function Home() {
         </p>
       </section>
 
-      <section
-        className="application-section"
-        id="application"
-        aria-label="매도 정체 진단 신청서"
-      >
-        <DiagnosisForm />
-      </section>
-
       <footer>
         <a
           className="brand footer-brand"
@@ -645,6 +638,14 @@ export default function Home() {
       </footer>
 
       <style>{`
+        html {
+          scroll-behavior: smooth;
+        }
+
+        #price-check-product {
+          scroll-margin-top: 24px;
+        }
+
         @media (max-width: 900px) {
           .hero-report {
             display: none !important;
