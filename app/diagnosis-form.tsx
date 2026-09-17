@@ -2754,47 +2754,64 @@ useEffect(() => {
                   gap: 8,
                 }}
               >
-                <div className="unit-input">
-                  <input
+              <div className="unit-input">
+                {availableAreas.length > 0 ? (
+                  <select
                     name="exclusiveArea"
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]+"
                     required
-                    list="exclusive-area-options"
-                    value={
-                      selectedExclusiveArea
-                    }
-                    placeholder="예: 84"
-                    onChange={(
-                      event
-                    ) =>
+                    value={selectedExclusiveArea}
+                    onChange={(event) => {
                       setSelectedExclusiveArea(
-                        event.target
-                          .value
-                          .replace(
+                        event.target.value
+                      );
+
+                      setAreaLookupError("");
+                      setLookupError("");
+                      setReportError("");
+                      setPendingDiagnosis(null);
+                      setAgreedToPaymentTerms(false);
+                    }}
+                  >
+                    <option
+                      value=""
+                      disabled
+                    >
+                      전용면적을 선택하세요
+                    </option>
+
+                    {availableAreas.map((area) => (
+                      <option
+                        value={String(area)}
+                        key={area}
+                      >
+                        {area}㎡
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <>
+                    <input
+                      name="exclusiveArea"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]+"
+                      required
+                      value={selectedExclusiveArea}
+                      placeholder="예: 84"
+                      onChange={(event) =>
+                        setSelectedExclusiveArea(
+                          event.target.value.replace(
                             /[^0-9]/g,
                             ""
                           )
-                      )
-                    }
-                  />
+                        )
+                      }
+                    />
 
-                  <b>㎡</b>
-
-                  <datalist id="exclusive-area-options">
-                    {availableAreas.map(
-                      (area) => (
-                        <option
-                          value={String(
-                            area
-                          )}
-                          key={area}
-                        />
-                      )
-                    )}
-                  </datalist>
-                </div>
+                    <b>㎡</b>
+                  </>
+                )}
+              </div>
 
                 <button
                   type="button"
