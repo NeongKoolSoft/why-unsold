@@ -45,7 +45,7 @@ export default function Home() {
             ?
           </span>
 
-          <span>왜 안 팔릴까?</span>
+          <span>내 집 매도 도우미</span>
         </a>
 
         <a
@@ -76,72 +76,48 @@ export default function Home() {
           <h1>
             내 아파트,
             <br />
-            <strong>
-              얼마에 내놓아야 할까?
-            </strong>
+            <strong>지금 어떻게 팔아야 할까?</strong>
           </h1>
 
           <p className="hero-description">
-            팔기 전 가격부터, 안 팔릴 때 원인까지
+            매도 전 가격부터, 안 팔릴 때 원인과 다음 행동까지
+            <br className="desktop-break" />
             최근 실거래와 거래 흐름으로 진단합니다.
           </p>
 
-          <div className="hero-actions">
-            <a
-              className="primary-button"
-              href="#price-check-product"
-            >
-              내 아파트 매도가격 확인하기
-            </a>
+          <div className="hero-choice-list">
+            <div className="hero-choice">
+              <div className="hero-choice-copy">
+                <span>아직 매도 전이라면</span>
+                <strong>얼마에 내놓을지 먼저 확인하세요.</strong>
+              </div>
+              <a className="primary-button hero-choice-button" href="/price-check">
+                내 아파트 매도가격 확인하기
+                <span aria-hidden="true">→</span>
+              </a>
+            </div>
 
-            <a
-              className="text-button"
-              href="#sample"
-            >
-              제공 내용 보기{" "}
-              <span aria-hidden="true">
-                ↓
-              </span>
-            </a>
+            <div className="hero-choice">
+              <div className="hero-choice-copy">
+                <span>이미 매도 중이라면</span>
+                <strong>왜 문의가 없는지 원인부터 확인하세요.</strong>
+              </div>
+              <a className="secondary-hero-button" href="/diagnosis">
+                왜 안 팔리는지 진단하기
+                <span aria-hidden="true">→</span>
+              </a>
+            </div>
           </div>
 
           <p className="hero-trust-note">
             국토교통부 실거래 자동조회 · 단계별 1회 결제
           </p>
-
-          <ul
-            className="promise-list"
-            aria-label="아파트 매도 진단 단계"
-          >
-            <li>
-              <span>01</span>
-              매도 전
-            </li>
-
-            <li>
-              <span>02</span>
-              매도 중
-            </li>
-
-            <li>
-              <span>03</span>
-              진단 후 실행
-            </li>
-          </ul>
         </div>
 
-        <div
-          className="hero-report"
-          aria-label="리센츠 매도 정체 진단 예시"
-        >
+        <div className="hero-report" aria-label="리센츠 매도 정체 진단 예시">
           <div className="report-topline">
-            <span className="report-label">
-              매도 중 진단 예시
-            </span>
-
-            <span className="report-code">
-              SAMPLE REPORT
-            </span>
+            <span className="report-label">실제 진단에서는 이런 것을 확인합니다</span>
+            <span className="report-code">SAMPLE REPORT</span>
           </div>
 
           <p className="report-address">
@@ -150,7 +126,7 @@ export default function Home() {
 
           <div className="diagnosis-badge">
             <i />
-            실제 리포트 미리보기
+            매도 중 진단 예시
           </div>
 
           <h2>
@@ -160,53 +136,33 @@ export default function Home() {
           </h2>
 
           <p className="report-summary">
-            최근 거래는 꾸준하지만 현재 희망가는 최근
-            실거래와 입력한 경쟁 매물 최저가보다 높습니다.
-            가격 차이가 초기 비교 단계에서 부담으로
+            최근 거래는 꾸준하지만 현재 희망가는 최근 실거래와 입력한 경쟁
+            매물 최저가보다 높습니다. 가격 차이가 초기 비교 단계에서 부담으로
             작용할 가능성이 큽니다.
           </p>
 
           <div className="signal-grid">
             {signals.map((signal) => (
-              <div
-                className="signal"
-                key={signal.label}
-              >
-                <strong>
-                  {signal.value}
-                </strong>
-
-                <span>
-                  {signal.label}
-                </span>
+              <div className="signal" key={signal.label}>
+                <strong>{signal.value}</strong>
+                <span>{signal.label}</span>
               </div>
             ))}
           </div>
 
           <div className="next-action">
-            <span>
-              핵심 병목
-            </span>
-
-            <p>
-              가격 경쟁력
-            </p>
+            <span>진단 결과</span>
+            <p>현재 가장 큰 병목은 가격 경쟁력입니다.</p>
           </div>
 
           <div className="next-action">
-            <span>
-              지금 우선할 것
-            </span>
-
-            <p>
-              입력한 경쟁 매물 최저가와의 가격 차이를
-              줄일 수 있는지 점검
-            </p>
+            <span>다음 행동</span>
+            <p>입력한 경쟁 매물 최저가와의 가격 차이를 줄일 수 있는지 점검</p>
           </div>
 
           <p className="report-note">
-            국토교통부 실거래 자동조회 · 사용자 입력 기반
-            분석입니다. 거래 성사를 보장하지 않습니다.
+            국토교통부 실거래 자동조회 · 사용자 입력 기반 분석입니다. 거래 성사를
+            보장하지 않습니다.
           </p>
         </div>
       </section>
@@ -646,11 +602,6 @@ export default function Home() {
           scroll-margin-top: 24px;
         }
 
-        @media (max-width: 900px) {
-          .hero-report {
-            display: none !important;
-          }
-        }
       `}</style>
     </main>
   );
