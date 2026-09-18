@@ -91,7 +91,7 @@ export default function Home() {
                 <span>아직 매도 전이라면</span>
                 <strong>얼마에 내놓을지 먼저 확인하세요.</strong>
               </div>
-              <a className="primary-button hero-choice-button" href="/price-check">
+              <a className="primary-button hero-choice-button" href="#price-check-product">
                 내 아파트 매도가격 확인하기
                 <span aria-hidden="true">→</span>
               </a>
@@ -102,7 +102,7 @@ export default function Home() {
                 <span>이미 매도 중이라면</span>
                 <strong>왜 문의가 없는지 원인부터 확인하세요.</strong>
               </div>
-              <a className="secondary-hero-button" href="/diagnosis">
+              <a className="primary-button hero-choice-button" href="#diagnosis-product">
                 왜 안 팔리는지 진단하기
                 <span aria-hidden="true">→</span>
               </a>
@@ -342,7 +342,7 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="pricing-card featured">
+          <div className="pricing-card featured" id="diagnosis-product">
             <span className="recommended">
               매도 중
             </span>
@@ -598,7 +598,8 @@ export default function Home() {
           scroll-behavior: smooth;
         }
 
-        #price-check-product {
+        #price-check-product,
+        #diagnosis-product {
           scroll-margin-top: 24px;
         }
 
