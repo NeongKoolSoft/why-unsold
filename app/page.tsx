@@ -1,3 +1,5 @@
+"use client";
+
 const signals = [
   {
     value: "29억 2,000만원",
@@ -25,6 +27,16 @@ const businessInfo = {
 
 const hasBusinessInfo =
   businessInfo.businessName.trim().length > 0;
+
+function trackGa4Event(eventName: string) {
+  if (typeof window === "undefined") return;
+
+  const gtag = (window as Window & {
+    gtag?: (...args: unknown[]) => void;
+  }).gtag;
+
+  gtag?.("event", eventName);
+}
 
 export default function Home() {
   return (
@@ -91,7 +103,11 @@ export default function Home() {
                 <span>아직 매도 전이라면</span>
                 <strong>얼마에 내놓을지 먼저 확인하세요.</strong>
               </div>
-              <a className="primary-button hero-choice-button" href="#price-check-product">
+              <a
+                className="primary-button hero-choice-button"
+                href="#price-check-product"
+                onClick={() => trackGa4Event("price_check_cta_click")}
+              >
                 내 아파트 매도가격 확인하기
                 <span aria-hidden="true">→</span>
               </a>
@@ -102,7 +118,11 @@ export default function Home() {
                 <span>이미 매도 중이라면</span>
                 <strong>왜 문의가 없는지 원인부터 확인하세요.</strong>
               </div>
-              <a className="primary-button hero-choice-button" href="#diagnosis-product">
+              <a
+                className="primary-button hero-choice-button"
+                href="#diagnosis-product"
+                onClick={() => trackGa4Event("diagnosis_cta_click")}
+              >
                 왜 안 팔리는지 진단하기
                 <span aria-hidden="true">→</span>
               </a>
