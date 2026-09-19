@@ -357,6 +357,7 @@ export default function Home() {
             <a
               className="primary-button dark"
               href="/price-check"
+              onClick={() => trackGa4Event("price_check_product_click")}
             >
               가격 진단 시작하기
             </a>
@@ -417,6 +418,7 @@ export default function Home() {
             <a
               className="primary-button dark"
               href="/diagnosis"
+              onClick={() => trackGa4Event("diagnosis_product_click")}
             >
               매도 정체 진단 시작하기
             </a>
@@ -477,6 +479,7 @@ export default function Home() {
             <a
               className="primary-button dark"
               href="/execution-strategy"
+              onClick={() => trackGa4Event("execution_strategy_product_click")}
             >
               30일 실행전략 시작하기
             </a>
