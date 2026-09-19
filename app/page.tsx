@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
 const signals = [
   {
     value: "29억 2,000만원",
@@ -39,6 +41,53 @@ function trackGa4Event(eventName: string) {
 }
 
 export default function Home() {
+  const priceCheckProductRef = useRef<HTMLDivElement>(null);
+  const diagnosisProductRef = useRef<HTMLDivElement>(null);
+  const executionStrategyProductRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observedCards = [
+      {
+        element: priceCheckProductRef.current,
+        eventName: "price_check_product_view",
+      },
+      {
+        element: diagnosisProductRef.current,
+        eventName: "diagnosis_product_view",
+      },
+      {
+        element: executionStrategyProductRef.current,
+        eventName: "execution_strategy_product_view",
+      },
+    ];
+
+    const viewed = new Set<string>();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting || entry.intersectionRatio < 0.5) return;
+
+          const eventName = entry.target.getAttribute("data-view-event");
+          if (!eventName || viewed.has(eventName)) return;
+
+          viewed.add(eventName);
+          trackGa4Event(eventName);
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    observedCards.forEach(({ element, eventName }) => {
+      if (!element) return;
+      element.setAttribute("data-view-event", eventName);
+      observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <main>
       <nav
@@ -308,6 +357,7 @@ export default function Home() {
 
         <div className="pricing-cards">
           <div
+            ref={priceCheckProductRef}
             className="pricing-card"
             id="price-check-product"
           >
@@ -363,7 +413,11 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="pricing-card featured" id="diagnosis-product">
+          <div
+            ref={diagnosisProductRef}
+            className="pricing-card featured"
+            id="diagnosis-product"
+          >
             <span className="recommended">
               매도 중
             </span>
@@ -424,7 +478,7 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="pricing-card">
+          <div className="pricing-card" ref={executionStrategyProductRef}>
             <span className="recommended">
               진단 후 실행
             </span>
