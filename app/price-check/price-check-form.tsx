@@ -137,6 +137,11 @@ export default function PriceCheckForm() {
   ] = useState("");
 
   const [
+    isManualAreaInput,
+    setIsManualAreaInput,
+  ] = useState(true);
+
+  const [
     askingPrice,
     setAskingPrice,
   ] = useState("");
@@ -314,9 +319,9 @@ export default function PriceCheckForm() {
     }
   }
 
-  async function loadAreas(
-    selectedApartmentName: string
-  ) {
+  async function loadAreas() {
+    const selectedApartmentName =
+      apartmentName.trim();
     if (
       !lawdCd ||
       !legalDong.trim() ||
@@ -388,6 +393,8 @@ export default function PriceCheckForm() {
       setAreas(
         availableAreas
       );
+      setExclusiveArea("");
+      setIsManualAreaInput(false);
     } catch (
       loadError
     ) {
@@ -679,37 +686,16 @@ export default function PriceCheckForm() {
         <label className="full">
           <span>동</span>
 
-          <div className="field-action">
-            <input
-              value={
-                legalDong
-              }
-              onChange={(
-                event
-              ) => {
-                setLegalDong(
-                  event.target
-                    .value
-                );
-                resetPropertySelection();
-              }}
-              placeholder="예: 잠실동"
-            />
-
-            <button
-              type="button"
-              onClick={
-                loadApartments
-              }
-              disabled={
-                isLoadingApartments
-              }
-            >
-              {isLoadingApartments
-                ? "단지 찾는 중…"
-                : "입력한 동의 단지 찾기"}
-            </button>
-          </div>
+          <input
+            value={legalDong}
+            onChange={(event) => {
+              setLegalDong(
+                event.target.value
+              );
+              resetPropertySelection();
+            }}
+            placeholder="예: 잠실동"
+          />
         </label>
 
         <label className="full">
@@ -717,70 +703,77 @@ export default function PriceCheckForm() {
             아파트 단지
           </span>
 
-          <select
-            value={
-              apartmentName
-            }
-            disabled={
-              apartments.length ===
-              0
-            }
-            onChange={(
-              event
-            ) => {
-              const nextApartmentName =
-                event.target.value;
-
-              setApartmentName(
-                nextApartmentName
-              );
-
-              setAreas([]);
-              setExclusiveArea("");
-              setOrderData(null);
-
-              if (
-                nextApartmentName
-              ) {
-                void loadAreas(
-                  nextApartmentName
-                );
-              }
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "minmax(0, 1fr) 88px",
+              gap: 8,
             }}
           >
-            <option value="">
-              {apartments.length ===
-              0
-                ? "먼저 동의 단지를 찾아주세요"
-                : "아파트 단지 선택"}
-            </option>
-
-            {apartments.map(
-              (name) => (
-                <option
-                  key={name}
-                  value={name}
-                >
-                  {name}
+            {apartments.length > 0 ? (
+              <select
+                value={apartmentName}
+                onChange={(event) => {
+                  setApartmentName(
+                    event.target.value
+                  );
+                  setAreas([]);
+                  setExclusiveArea("");
+                  setIsManualAreaInput(true);
+                  setOrderData(null);
+                }}
+              >
+                <option value="" disabled>
+                  아파트 단지를 선택하세요
                 </option>
-              )
-            )}
-          </select>
 
-          {isLoadingAreas ? (
-            <small className="field-status">
-              선택한 단지의
-              전용면적을 불러오고
-              있습니다.
-            </small>
-          ) : apartmentName &&
-            areas.length > 0 ? (
-            <small className="field-status success">
-              전용면적{" "}
-              {areas.length}개를
-              불러왔습니다.
-            </small>
-          ) : null}
+                {apartments.map((name) => (
+                  <option
+                    key={name}
+                    value={name}
+                  >
+                    {name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                value={apartmentName}
+                onChange={(event) => {
+                  setApartmentName(
+                    event.target.value
+                  );
+                  setAreas([]);
+                  setExclusiveArea("");
+                  setIsManualAreaInput(true);
+                  setOrderData(null);
+                }}
+                placeholder="예: 리센츠"
+              />
+            )}
+
+            <button
+              type="button"
+              onClick={loadApartments}
+              disabled={
+                isLoadingApartments ||
+                !lawdCd ||
+                !legalDong.trim()
+              }
+              className="lookup-button"
+            >
+              {isLoadingApartments
+                ? "조회 중…"
+                : "단지 불러오기"}
+            </button>
+          </div>
+
+          <small className="field-status">
+            {apartments.length > 0
+              ? "조회된 단지 목록에서 선택해주세요. 단지를 다시 조회하려면 동을 수정한 뒤 단지 불러오기를 눌러주세요."
+              : "단지명을 알고 있다면 직접 입력할 수 있습니다. 단지 불러오기를 누르면 조회된 단지를 선택 목록으로 제공합니다."}
+          </small>
         </label>
 
         <label>
@@ -788,45 +781,98 @@ export default function PriceCheckForm() {
             전용면적
           </span>
 
-          <select
-            value={
-              exclusiveArea
-            }
-            disabled={
-              areas.length ===
-                0 ||
-              isLoadingAreas
-            }
-            onChange={(
-              event
-            ) => {
-              setExclusiveArea(
-                event.target
-                  .value
-              );
-              setOrderData(null);
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "minmax(0, 1fr) 88px",
+              gap: 8,
             }}
           >
-            <option value="">
-              {isLoadingAreas
-                ? "전용면적 불러오는 중…"
-                : "전용면적 선택"}
-            </option>
+            <div className="unit-input">
+              {!isManualAreaInput &&
+              areas.length > 0 ? (
+                <select
+                  required
+                  value={exclusiveArea}
+                  disabled={isLoadingAreas}
+                  onChange={(event) => {
+                    const value =
+                      event.target.value;
 
-            {areas.map(
-              (area) => (
-                <option
-                  key={area}
-                  value={area}
+                    if (
+                      value === "__manual__"
+                    ) {
+                      setExclusiveArea("");
+                      setIsManualAreaInput(true);
+                      return;
+                    }
+
+                    setExclusiveArea(value);
+                    setOrderData(null);
+                  }}
                 >
-                  {formatArea(
-                    area
-                  )}
-                  ㎡
-                </option>
-              )
-            )}
-          </select>
+                  <option value="" disabled>
+                    전용면적을 선택하세요
+                  </option>
+
+                  {areas.map((area) => (
+                    <option
+                      key={area}
+                      value={String(area)}
+                    >
+                      {formatArea(area)}㎡
+                    </option>
+                  ))}
+
+                  <option value="__manual__">
+                    직접 입력하기
+                  </option>
+                </select>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]+"
+                    required
+                    value={exclusiveArea}
+                    placeholder="예: 84"
+                    onChange={(event) => {
+                      setExclusiveArea(
+                        event.target.value.replace(
+                          /[^0-9]/g,
+                          ""
+                        )
+                      );
+                      setOrderData(null);
+                    }}
+                  />
+                  <b>㎡</b>
+                </>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={loadAreas}
+              disabled={
+                isLoadingAreas ||
+                !lawdCd ||
+                !legalDong.trim() ||
+                !apartmentName.trim()
+              }
+              className="lookup-button"
+            >
+              {isLoadingAreas
+                ? "조회 중…"
+                : "불러오기"}
+            </button>
+          </div>
+
+          <small className="field-status">
+            전용면적을 알고 있다면 정수로 직접 입력할 수 있습니다. 불러오기는 최근 5년 공공데이터를 확인하므로 다소 시간이 걸릴 수 있습니다.
+          </small>
         </label>
 
         <label>
@@ -1019,6 +1065,22 @@ export default function PriceCheckForm() {
           background:
             #f1f3f1;
           color: #909893;
+          cursor: not-allowed;
+        }
+
+        .lookup-button {
+          min-height: 52px;
+          padding: 0 10px;
+          border: 1px solid var(--ink);
+          background: #fff;
+          color: var(--ink);
+          font-size: 12px;
+          font-weight: 800;
+          cursor: pointer;
+        }
+
+        .lookup-button:disabled {
+          opacity: 0.55;
           cursor: not-allowed;
         }
 

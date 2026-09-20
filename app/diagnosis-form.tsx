@@ -1494,6 +1494,12 @@ export default function DiagnosisForm() {
     useState("");
 
   const [
+    isManualAreaInput,
+    setIsManualAreaInput,
+  ] =
+    useState(true);
+
+  const [
     selectedRegionName,
     setSelectedRegionName,
   ] =
@@ -1602,6 +1608,7 @@ useEffect(() => {
     setSelectedExclusiveArea(
       ""
     );
+    setIsManualAreaInput(true);
     setAreaLookupMessage("");
     setAreaLookupError("");
     setLookupError("");
@@ -1893,6 +1900,8 @@ useEffect(() => {
       setAvailableAreas(
         normalizedAreas
       );
+      setSelectedExclusiveArea("");
+      setIsManualAreaInput(false);
 
       setAreaLookupMessage(
         `최근 5년 실거래에서 전용면적 ${normalizedAreas.length}개 유형을 찾았습니다. 소수점 이하는 생략해 표시합니다.`
@@ -2747,71 +2756,78 @@ useEffect(() => {
 
               <div
                 style={{
-                  display:
-                    "grid",
+                  display: "grid",
                   gridTemplateColumns:
                     "minmax(0, 1fr) 88px",
                   gap: 8,
                 }}
               >
-              <div className="unit-input">
-                {availableAreas.length > 0 ? (
-                  <select
-                    name="exclusiveArea"
-                    required
-                    value={selectedExclusiveArea}
-                    onChange={(event) => {
-                      setSelectedExclusiveArea(
-                        event.target.value
-                      );
-
-                      setAreaLookupError("");
-                      setLookupError("");
-                      setReportError("");
-                      setPendingDiagnosis(null);
-                      setAgreedToPaymentTerms(false);
-                    }}
-                  >
-                    <option
-                      value=""
-                      disabled
-                    >
-                      전용면적을 선택하세요
-                    </option>
-
-                    {availableAreas.map((area) => (
-                      <option
-                        value={String(area)}
-                        key={area}
-                      >
-                        {area}㎡
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <>
-                    <input
+                <div className="unit-input">
+                  {!isManualAreaInput &&
+                  availableAreas.length > 0 ? (
+                    <select
                       name="exclusiveArea"
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]+"
                       required
                       value={selectedExclusiveArea}
-                      placeholder="예: 84"
-                      onChange={(event) =>
-                        setSelectedExclusiveArea(
-                          event.target.value.replace(
-                            /[^0-9]/g,
-                            ""
-                          )
-                        )
-                      }
-                    />
+                      onChange={(event) => {
+                        const value = event.target.value;
 
-                    <b>㎡</b>
-                  </>
-                )}
-              </div>
+                        if (value === "__manual__") {
+                          setSelectedExclusiveArea("");
+                          setIsManualAreaInput(true);
+                          return;
+                        }
+
+                        setSelectedExclusiveArea(value);
+                        setAreaLookupError("");
+                        setLookupError("");
+                        setReportError("");
+                        setPendingDiagnosis(null);
+                        setAgreedToPaymentTerms(false);
+                      }}
+                    >
+                      <option value="" disabled>
+                        전용면적을 선택하세요
+                      </option>
+
+                      {availableAreas.map((area) => (
+                        <option value={String(area)} key={area}>
+                          {area}㎡
+                        </option>
+                      ))}
+
+                      <option value="__manual__">
+                        직접 입력하기
+                      </option>
+                    </select>
+                  ) : (
+                    <>
+                      <input
+                        name="exclusiveArea"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]+"
+                        required
+                        value={selectedExclusiveArea}
+                        placeholder="예: 84"
+                        onChange={(event) => {
+                          setSelectedExclusiveArea(
+                            event.target.value.replace(
+                              /[^0-9]/g,
+                              ""
+                            )
+                          );
+                          setAreaLookupError("");
+                          setLookupError("");
+                          setReportError("");
+                          setPendingDiagnosis(null);
+                          setAgreedToPaymentTerms(false);
+                        }}
+                      />
+                      <b>㎡</b>
+                    </>
+                  )}
+                </div>
 
                 <button
                   type="button"
@@ -2821,32 +2837,22 @@ useEffect(() => {
                     !selectedApartmentName.trim() ||
                     isGeneratingReport
                   }
-                  onClick={
-                    loadExclusiveAreas
-                  }
+                  onClick={loadExclusiveAreas}
                   style={{
                     minHeight: 50,
-                    padding:
-                      "0 10px",
-                    border:
-                      "1px solid #1c2922",
-                    background:
-                      "#fff",
-                    color:
-                      "#1c2922",
-                    font:
-                      "inherit",
+                    padding: "0 10px",
+                    border: "1px solid #1c2922",
+                    background: "#fff",
+                    color: "#1c2922",
+                    font: "inherit",
                     fontSize: 12,
-                    fontWeight:
-                      800,
-
+                    fontWeight: 800,
                     cursor:
                       isLoadingAreas ||
                       !selectedDistrictCode ||
                       isGeneratingReport
                         ? "not-allowed"
                         : "pointer",
-
                     opacity:
                       isLoadingAreas ||
                       !selectedDistrictCode ||
@@ -2855,9 +2861,7 @@ useEffect(() => {
                         : 1,
                   }}
                 >
-                  {isLoadingAreas
-                    ? "조회 중…"
-                    : "불러오기"}
+                  {isLoadingAreas ? "조회 중…" : "불러오기"}
                 </button>
               </div>
 
