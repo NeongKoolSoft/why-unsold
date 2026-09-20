@@ -106,7 +106,7 @@ export default function Home() {
             ?
           </span>
 
-          <span>내 집 매도 도우미</span>
+          <span>내 집 매도</span>
         </a>
 
         <a
