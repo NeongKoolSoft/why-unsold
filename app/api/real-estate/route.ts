@@ -157,7 +157,7 @@ type LookupHistoryCacheEntry = {
 };
 const lookupHistoryCache = new Map<string, LookupHistoryCacheEntry>();
 
-// 목록 조회에서는 월별 요청을 4개씩 병렬 처리하고 1시간 캐시합니다.
+// 목록 조회에서는 월별 요청을 최대 8개씩 병렬 처리하고 1시간 캐시합니다.
 // 월별 실거래 자료는 구 단위로 제공되므로, 동/단지 필터링은 이후에 수행합니다.
 async function fetchLookupHistory(params: {
   serviceKey: string;
@@ -177,34 +177,58 @@ async function fetchLookupHistory(params: {
   if (cached) lookupHistoryCache.delete(cacheKey);
 
   // 동일 조회가 동시에 들어오더라도 단 한 번만 외부 API를 호출합니다.
+  // 각 월의 결과를 원래 순서대로 합쳐 기존 단지/전용면적 목록을 유지합니다.
   const promise = (async (): Promise<LookupHistory> => {
+    const startedAt = Date.now();
     const history: LookupHistory = [];
-    const concurrency = 4;
+    const concurrency = 8;
+    let slowestMonth = "";
+    let slowestMs = 0;
 
-    for (let start = 0; start < params.yearMonths.length; start += concurrency) {
-      const batch = params.yearMonths.slice(start, start + concurrency);
-      const results = await Promise.all(
-        batch.map(async (dealYmd) => {
-          try {
-            const result = await fetchMonthlyTransactions({
-              serviceKey: params.serviceKey,
-              lawdCd: params.lawdCd,
-              dealYmd,
-              useCache: true,
-            });
-            return result.transactions;
-          } catch (error) {
-            throw new Error(
-              `${dealYmd}: ${error instanceof Error ? error.message : "국토교통부 API 요청에 실패했습니다."}`
-            );
-          }
-        })
+    try {
+      for (let start = 0; start < params.yearMonths.length; start += concurrency) {
+        const batch = params.yearMonths.slice(start, start + concurrency);
+        const batchStartedAt = Date.now();
+        const results = await Promise.all(
+          batch.map(async (dealYmd) => {
+            const monthStartedAt = Date.now();
+            try {
+              const result = await fetchMonthlyTransactions({
+                serviceKey: params.serviceKey,
+                lawdCd: params.lawdCd,
+                dealYmd,
+                useCache: true,
+              });
+              const elapsed = Date.now() - monthStartedAt;
+              if (elapsed > slowestMs) {
+                slowestMs = elapsed;
+                slowestMonth = dealYmd;
+              }
+              return result.transactions;
+            } catch (error) {
+              throw new Error(
+                `${dealYmd}: ${error instanceof Error ? error.message : "국토교통부 API 요청에 실패했습니다."}`
+              );
+            }
+          })
+        );
+
+        for (const transactions of results) history.push(...transactions);
+        console.info(
+          `[real-estate lookup] district=${params.lawdCd} batch=${start / concurrency + 1} months=${batch.join(",")} durationMs=${Date.now() - batchStartedAt}`
+        );
+      }
+
+      console.info(
+        `[real-estate lookup] district=${params.lawdCd} months=${params.yearMonths.length} totalMs=${Date.now() - startedAt} slowestMonth=${slowestMonth} slowestMs=${slowestMs}`
       );
-
-      for (const transactions of results) history.push(...transactions);
+      return history;
+    } catch (error) {
+      console.error(
+        `[real-estate lookup] district=${params.lawdCd} failedAfterMs=${Date.now() - startedAt}`
+      );
+      throw error;
     }
-
-    return history;
   })();
 
   const entry: LookupHistoryCacheEntry = {
