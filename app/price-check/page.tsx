@@ -29,7 +29,7 @@ export default function PriceCheckPage() {
             ?
           </span>
 
-          내 집 매도
+          왜 안 팔릴까?
         </a>
 
         <a
@@ -113,7 +113,7 @@ export default function PriceCheckPage() {
             ?
           </span>
 
-          내 집 매도
+          왜 안 팔릴까?
         </a>
 
         <p>

@@ -106,7 +106,7 @@ export default function Home() {
             ?
           </span>
 
-          <span>내 집 매도</span>
+          <span>왜 안 팔릴까?</span>
         </a>
 
         <a
