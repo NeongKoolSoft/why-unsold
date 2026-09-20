@@ -104,6 +104,7 @@ async function fetchMonthlyTransactions(params: {
   serviceKey: string;
   lawdCd: string;
   dealYmd: string;
+  useCache?: boolean;
 }) {
   const searchParams = new URLSearchParams({
     serviceKey: rawServiceKey(params.serviceKey),
@@ -114,7 +115,9 @@ async function fetchMonthlyTransactions(params: {
   });
 
   const response = await fetch(`${ENDPOINT}?${searchParams.toString()}`, {
-    cache: "no-store",
+    ...(params.useCache
+      ? { next: { revalidate: 3600 } }
+      : { cache: "no-store" as const }),
   });
 
   const xml = await response.text();
@@ -140,6 +143,89 @@ async function fetchMonthlyTransactions(params: {
     xml,
     transactions: readItems(xml),
   };
+}
+
+// 같은 서버 인스턴스에서 단지 조회 직후 전용면적을 조회할 때,
+// 이미 수집한 월별 실거래 목록을 다시 60개월 읽지 않도록 재사용합니다.
+// 메모리 사용량을 제한하기 위해 최근 2개 지역/기간만 5분간 보관합니다.
+const LOOKUP_HISTORY_TTL_MS = 5 * 60 * 1000;
+const LOOKUP_HISTORY_MAX_ENTRIES = 2;
+type LookupHistory = ReturnType<typeof readItems>;
+type LookupHistoryCacheEntry = {
+  expiresAt: number;
+  promise: Promise<LookupHistory>;
+};
+const lookupHistoryCache = new Map<string, LookupHistoryCacheEntry>();
+
+// 목록 조회에서는 월별 요청을 4개씩 병렬 처리하고 1시간 캐시합니다.
+// 월별 실거래 자료는 구 단위로 제공되므로, 동/단지 필터링은 이후에 수행합니다.
+async function fetchLookupHistory(params: {
+  serviceKey: string;
+  lawdCd: string;
+  yearMonths: string[];
+}) {
+  const cacheKey = `${params.lawdCd}:${params.yearMonths.join(",")}`;
+  const now = Date.now();
+  const cached = lookupHistoryCache.get(cacheKey);
+
+  if (cached && cached.expiresAt > now) {
+    // 최근 사용한 항목이 마지막에 오도록 순서를 갱신합니다.
+    lookupHistoryCache.delete(cacheKey);
+    lookupHistoryCache.set(cacheKey, cached);
+    return cached.promise;
+  }
+  if (cached) lookupHistoryCache.delete(cacheKey);
+
+  // 동일 조회가 동시에 들어오더라도 단 한 번만 외부 API를 호출합니다.
+  const promise = (async (): Promise<LookupHistory> => {
+    const history: LookupHistory = [];
+    const concurrency = 4;
+
+    for (let start = 0; start < params.yearMonths.length; start += concurrency) {
+      const batch = params.yearMonths.slice(start, start + concurrency);
+      const results = await Promise.all(
+        batch.map(async (dealYmd) => {
+          try {
+            const result = await fetchMonthlyTransactions({
+              serviceKey: params.serviceKey,
+              lawdCd: params.lawdCd,
+              dealYmd,
+              useCache: true,
+            });
+            return result.transactions;
+          } catch (error) {
+            throw new Error(
+              `${dealYmd}: ${error instanceof Error ? error.message : "국토교통부 API 요청에 실패했습니다."}`
+            );
+          }
+        })
+      );
+
+      for (const transactions of results) history.push(...transactions);
+    }
+
+    return history;
+  })();
+
+  const entry: LookupHistoryCacheEntry = {
+    expiresAt: now + LOOKUP_HISTORY_TTL_MS,
+    promise,
+  };
+  lookupHistoryCache.set(cacheKey, entry);
+  while (lookupHistoryCache.size > LOOKUP_HISTORY_MAX_ENTRIES) {
+    const oldestKey = lookupHistoryCache.keys().next().value;
+    if (oldestKey === undefined) break;
+    lookupHistoryCache.delete(oldestKey);
+  }
+
+  // 실패한 결과는 캐시에서 제거해서 다음 요청에 재시도할 수 있게 합니다.
+  void promise.catch(() => {
+    if (lookupHistoryCache.get(cacheKey) === entry) {
+      lookupHistoryCache.delete(cacheKey);
+    }
+  });
+
+  return promise;
 }
 
 export async function GET(request: NextRequest) {
@@ -262,80 +348,63 @@ export async function GET(request: NextRequest) {
         }
       >();
 
-      for (const dealYmd of yearMonths) {
-        let transactions: ReturnType<typeof readItems>;
+      const transactions = await fetchLookupHistory({
+        serviceKey,
+        lawdCd,
+        yearMonths,
+      });
 
-        try {
-          ({ transactions } = await fetchMonthlyTransactions({
-            serviceKey,
-            lawdCd,
-            dealYmd,
-          }));
-        } catch (error) {
-          return NextResponse.json(
-            {
-              error:
-                error instanceof Error
-                  ? error.message
-                  : "국토교통부 API 요청에 실패했습니다.",
-              failedYearMonth: dealYmd,
-            },
-            { status: 502 }
-          );
+      for (const transaction of transactions) {
+        if (
+          normalizeLegalDong(transaction.legalDong) !==
+          normalizedTargetDong
+        ) {
+          continue;
         }
 
-        for (const transaction of transactions) {
-          if (
-            normalizeLegalDong(transaction.legalDong) !==
-            normalizedTargetDong
-          ) {
-            continue;
-          }
+        const apartmentNameValue = transaction.apartmentName.trim();
 
-          const apartmentNameValue = transaction.apartmentName.trim();
+        if (!apartmentNameValue) {
+          continue;
+        }
 
-          if (!apartmentNameValue) {
-            continue;
-          }
+        const key = normalizeApartmentName(apartmentNameValue);
+        const existing = apartmentMap.get(key);
 
-          const key = normalizeApartmentName(apartmentNameValue);
-          const existing = apartmentMap.get(key);
+        if (!existing) {
+          apartmentMap.set(key, {
+            apartmentName: apartmentNameValue,
+            latestDealYear: transaction.dealYear,
+            latestDealMonth: transaction.dealMonth,
+            latestDealDay: transaction.dealDay,
+            transactionCount: 1,
+          });
+          continue;
+        }
 
-          if (!existing) {
-            apartmentMap.set(key, {
-              apartmentName: apartmentNameValue,
-              latestDealYear: transaction.dealYear,
-              latestDealMonth: transaction.dealMonth,
-              latestDealDay: transaction.dealDay,
-              transactionCount: 1,
-            });
-            continue;
-          }
+        existing.transactionCount += 1;
 
-          existing.transactionCount += 1;
+        const currentDate = new Date(
+          Date.UTC(
+            transaction.dealYear,
+            transaction.dealMonth - 1,
+            transaction.dealDay
+          )
+        );
 
-          const currentDate = new Date(
-            Date.UTC(
-              transaction.dealYear,
-              transaction.dealMonth - 1,
-              transaction.dealDay
-            )
-          );
+        const existingDate = new Date(
+          Date.UTC(
+            existing.latestDealYear,
+            existing.latestDealMonth - 1,
+            existing.latestDealDay
+          )
+        );
 
-          const existingDate = new Date(
-            Date.UTC(
-              existing.latestDealYear,
-              existing.latestDealMonth - 1,
-              existing.latestDealDay
-            )
-          );
-
-          if (currentDate.getTime() > existingDate.getTime()) {
-            existing.latestDealYear = transaction.dealYear;
-            existing.latestDealMonth = transaction.dealMonth;
-            existing.latestDealDay = transaction.dealDay;
-            existing.apartmentName = apartmentNameValue;
-          }
+        if (currentDate.getTime() > existingDate.getTime()) {
+          existing.latestDealYear = transaction.dealYear;
+          existing.latestDealMonth = transaction.dealMonth;
+          existing.latestDealDay = transaction.dealDay;
+          existing.apartmentName = apartmentNameValue;
         }
       }
 
@@ -394,43 +463,26 @@ export async function GET(request: NextRequest) {
       const availableAreaMap = new Map<string, number>();
       let matchedTransactionCount = 0;
 
-      for (const dealYmd of yearMonths) {
-        let transactions: ReturnType<typeof readItems>;
+      const transactions = await fetchLookupHistory({
+        serviceKey,
+        lawdCd,
+        yearMonths,
+      });
 
-        try {
-          ({ transactions } = await fetchMonthlyTransactions({
-            serviceKey,
-            lawdCd,
-            dealYmd,
-          }));
-        } catch (error) {
-          return NextResponse.json(
-            {
-              error:
-                error instanceof Error
-                  ? error.message
-                  : "국토교통부 API 요청에 실패했습니다.",
-              failedYearMonth: dealYmd,
-            },
-            { status: 502 }
-          );
-        }
+      const matchedTransactions = transactions.filter(
+        (transaction) =>
+          normalizeApartmentName(transaction.apartmentName) ===
+            normalizedTargetName &&
+          normalizeLegalDong(transaction.legalDong) === normalizedTargetDong
+      );
 
-        const matchedTransactions = transactions.filter(
-          (transaction) =>
-            normalizeApartmentName(transaction.apartmentName) ===
-              normalizedTargetName &&
-            normalizeLegalDong(transaction.legalDong) === normalizedTargetDong
-        );
+      matchedTransactionCount += matchedTransactions.length;
 
-        matchedTransactionCount += matchedTransactions.length;
+      for (const transaction of matchedTransactions) {
+        const area = transaction.exclusiveArea;
 
-        for (const transaction of matchedTransactions) {
-          const area = transaction.exclusiveArea;
-
-          if (Number.isFinite(area) && area > 0) {
-            availableAreaMap.set(area.toFixed(4), area);
-          }
+        if (Number.isFinite(area) && area > 0) {
+          availableAreaMap.set(area.toFixed(4), area);
         }
       }
 
