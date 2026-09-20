@@ -22,27 +22,34 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isProduction =
+    process.env.NODE_ENV === "production";
+
   return (
     <html lang="ko">
       <body>
         {children}
 
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-EPC6RCJZH4"
-          strategy="afterInteractive"
-        />
+        {isProduction && (
+          <>
+            <Script
+              src="https://www.googletagmanager.com/gtag/js?id=G-EPC6RCJZH4"
+              strategy="afterInteractive"
+            />
 
-        <Script
-          id="google-analytics"
-          strategy="afterInteractive"
-        >
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-EPC6RCJZH4');
-          `}
-        </Script>
+            <Script
+              id="google-analytics"
+              strategy="afterInteractive"
+            >
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-EPC6RCJZH4');
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );
