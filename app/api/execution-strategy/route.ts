@@ -2148,11 +2148,12 @@ export async function POST(
     }
 
     if (
-      verifiedStrategy.paymentId !==
-        paymentId ||
-      verifiedStrategy.amount !==
-        EXECUTION_STRATEGY_PRODUCT
-          .price
+      verifiedStrategy.paymentId !== paymentId ||
+      (
+        verifiedStrategy.amount !==
+          EXECUTION_STRATEGY_PRODUCT.price &&
+        verifiedStrategy.amount !== 19900
+      )
     ) {
       return NextResponse.json(
         {

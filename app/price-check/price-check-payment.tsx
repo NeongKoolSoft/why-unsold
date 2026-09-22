@@ -9,7 +9,7 @@ import type {
 } from "../price-check-types";
 
 const PRICE_CHECK_PRICE =
-  4900;
+  2900;
 
 const PORTONE_SDK_URL =
   "https://cdn.portone.io/v2/browser-sdk.js";
@@ -738,7 +738,7 @@ export default function PriceCheckPayment({
         </span>
 
         <strong>
-          4,900원
+          {PRICE_CHECK_PRICE.toLocaleString("ko-KR")}원
         </strong>
       </button>
 

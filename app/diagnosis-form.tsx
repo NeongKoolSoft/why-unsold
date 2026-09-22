@@ -123,7 +123,7 @@ function trackGaEvent(
   );
 }
 
-const REPORT_PRICE = 20000;
+const REPORT_PRICE = 9900;
 const PAYMENT_STARTED_KEY =
   "whyunsold:payment-started";
 const PORTONE_SDK_URL =
@@ -3325,7 +3325,7 @@ useEffect(() => {
                       "-0.03em",
                   }}
                 >
-                  20,000원
+                  9,900원
                 </strong>
               </div>
 
@@ -3481,7 +3481,7 @@ useEffect(() => {
             >
               {isOpeningPayment
                 ? "결제창 여는 중…"
-                : "20,000원 결제하고 리포트 만들기"}
+                : "9,900원 결제하고 리포트 만들기"}
 
               {!isOpeningPayment && (
                 <span aria-hidden="true">

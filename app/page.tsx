@@ -372,7 +372,7 @@ export default function Home() {
 
               <p className="price">
                 <strong>
-                  4,900
+                  2,900
                 </strong>
                 원
               </p>
@@ -429,7 +429,7 @@ export default function Home() {
 
               <p className="price">
                 <strong>
-                  20,000
+                  9,900
                 </strong>
                 원
               </p>
@@ -490,7 +490,7 @@ export default function Home() {
 
               <p className="price">
                 <strong>
-                  19,900
+                  14,500
                 </strong>
                 원
               </p>

@@ -142,7 +142,7 @@ export default function StrategyEntryCard({
               letterSpacing: "-0.04em",
             }}
           >
-            19,900원
+            14,500원
           </strong>
         </div>
       </div>

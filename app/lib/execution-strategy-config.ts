@@ -7,7 +7,7 @@ export const EXECUTION_STRATEGY_PRODUCT = {
     EXECUTION_STRATEGY_PRODUCT_CODE,
 
   price:
-    19900,
+    14500,
 
   paymentPrefix:
     "WHYUNSOLD-STRATEGY-",

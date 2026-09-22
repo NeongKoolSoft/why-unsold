@@ -8,9 +8,9 @@ import {
 } from "../../../lib/payment-security";
 
 const PRODUCT_PRICES = {
-  "price-check": 4900,
-  "stagnation-diagnosis": 20000,
-  "execution-strategy": 19900,
+  "price-check": 2900,
+  "stagnation-diagnosis": 9900,
+  "execution-strategy": 14500,
 } as const;
 
 type ProductId =
@@ -62,7 +62,7 @@ export async function POST(
   }
 
   /*
-   * 기존 20,000원 결제 요청은 productId를 보내지 않으므로
+   * 기존 매도 정체 진단 요청은 productId를 보내지 않으므로
    * 매도 정체 진단을 기본 상품으로 처리합니다.
    */
   const requestedProductId =

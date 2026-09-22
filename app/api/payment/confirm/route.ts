@@ -14,6 +14,12 @@ const PORTONE_API_BASE =
 
 const SUPPORTED_PAYMENT_AMOUNTS =
   new Set([
+    // 변경된 상품 가격
+    2900,
+    9900,
+    14500,
+
+    // 가격 변경 전에 발급한 주문의 결제 확인용
     4900,
     20000,
     19900,
