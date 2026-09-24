@@ -223,10 +223,11 @@ export default function Home() {
             리센츠 샘플 리포트 — 대시보드형
             설명용 예시이며 현재 시세를 뜻하지 않습니다.
         ====================================================== */}
-        <div
-          className="hero-report sample-dashboard"
-          aria-label="서울 잠실 리센츠 매도 정체 진단 샘플 리포트"
-        >
+        <div className="sample-report-column">
+          <div
+            className="hero-report sample-dashboard"
+            aria-label="서울 잠실 리센츠 매도 정체 진단 샘플 리포트"
+          >
           <div className="sample-dashboard-topline">
             <div className="sample-dashboard-topline-copy">
               <span
@@ -371,22 +372,6 @@ export default function Home() {
           </section>
 
 
-          <div className="sample-dashboard-more">
-            <strong>
-              실제 리포트에는 상세 분석이 6페이지 더 제공됩니다.
-            </strong>
-            <p>
-              지금 보신 화면은 첫 페이지의 구성 예시입니다.
-              실제 매도 정체 진단 리포트에는 가격·시장 해석,
-              거래 유동성, 매수 반응과 병목 진단,
-              가격 전략 시나리오, 실행 계획과 전략 변경 기준이
-              추가로 포함됩니다.
-            </p>
-            <span>
-              현재 리포트 구성 기준 · 총 7페이지
-            </span>
-          </div>
-
           <p className="sample-dashboard-disclaimer">
             설명용 입력값으로 만든 구성 예시 · 현재 시세 또는
             실제 매물 진단 결과가 아닙니다.
@@ -396,6 +381,22 @@ export default function Home() {
             <span>데이터 + AI 기반 매도 분석</span>
             <span>거래 성사를 보장하지 않습니다.</span>
           </div>
+        </div>
+
+        <div className="sample-report-notice">
+          <span className="sample-report-notice-icon" aria-hidden="true">
+            ⓘ
+          </span>
+
+          <p>
+            <strong>화면에는 리포트 첫 페이지 예시만 표시했습니다.</strong>
+            <br />
+            실제 구매 시에는 가격·시장 해석, 거래 유동성,
+            매수 반응과 병목 진단, 가격 전략과 실행 계획 등
+            <strong> 상세 분석 6페이지가 추가로 제공됩니다.</strong>
+            <span>현재 리포트 구성 기준 · 총 7페이지</span>
+          </p>
+        </div>        
         </div>
       </section>
 
@@ -1081,6 +1082,62 @@ export default function Home() {
           font-weight: 700;
         }        
 
+
+        /* 샘플 리포트와 별도 안내를 PC 오른쪽 열에 함께 배치 */
+        .sample-report-column {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+          width: 100%;
+          align-self: start;
+        }
+
+        .sample-report-column .hero-report.sample-dashboard {
+          width: 100%;
+          max-width: none;
+        }
+
+        /* 리포트 바깥 안내: PC와 모바일 공통 */
+        .sample-report-column .sample-report-notice {
+          display: flex;
+          align-items: flex-start;
+          gap: 9px;
+          width: 100%;
+          margin-top: 12px;
+          padding: 11px 13px;
+          border: 1px dashed #c9d7cf;
+          border-radius: 8px;
+          background: #f7f8f5;
+          box-sizing: border-box;
+        }
+
+        .sample-report-notice-icon {
+          flex: 0 0 auto;
+          color: #597567;
+          font-size: 17px;
+          line-height: 1.4;
+        }
+
+        .sample-report-notice p {
+          margin: 0;
+          color: #58675e;
+          font-size: 11px;
+          line-height: 1.6;
+          word-break: keep-all;
+        }
+
+        .sample-report-notice p > strong {
+          color: #2d4939;
+          font-weight: 800;
+        }
+
+        .sample-report-notice p > span {
+          display: block;
+          margin-top: 5px;
+          color: #7b857d;
+          font-size: 10px;
+        }
+
         @media (max-width: 680px) {
           .hero-report.sample-dashboard {
             padding: 11px;
@@ -1115,6 +1172,21 @@ export default function Home() {
           .sample-dashboard-footer {
             flex-wrap: wrap;
           }
+
+
+
+          .sample-report-notice p > strong {
+            color: #2d4939;
+            font-weight: 800;
+          }
+
+          .sample-report-notice p > span {
+            display: block;
+            margin-top: 5px;
+            color: #7b857d;
+            font-size: 10px;
+          }
+          
         }
       `}</style>
     </main>
