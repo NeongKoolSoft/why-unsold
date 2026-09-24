@@ -370,6 +370,23 @@ export default function Home() {
             </div>
           </section>
 
+
+          <div className="sample-dashboard-more">
+            <strong>
+              실제 리포트에는 상세 분석이 6페이지 더 제공됩니다.
+            </strong>
+            <p>
+              지금 보신 화면은 첫 페이지의 구성 예시입니다.
+              실제 매도 정체 진단 리포트에는 가격·시장 해석,
+              거래 유동성, 매수 반응과 병목 진단,
+              가격 전략 시나리오, 실행 계획과 전략 변경 기준이
+              추가로 포함됩니다.
+            </p>
+            <span>
+              현재 리포트 구성 기준 · 총 7페이지
+            </span>
+          </div>
+
           <p className="sample-dashboard-disclaimer">
             설명용 입력값으로 만든 구성 예시 · 현재 시세 또는
             실제 매물 진단 결과가 아닙니다.
@@ -1030,6 +1047,39 @@ export default function Home() {
           font-size: 9px;
           line-height: 1.45;
         }
+
+
+        .sample-dashboard-more {
+          margin-top: 12px;
+          padding: 13px 14px;
+          border: 1px solid #cfe4d5;
+          border-radius: 9px;
+          background: #edf7f0;
+        }
+
+        .sample-dashboard-more > strong {
+          display: block;
+          color: #14573e;
+          font-size: 13px;
+          line-height: 1.5;
+          word-break: keep-all;
+        }
+
+        .sample-dashboard-more > p {
+          margin: 7px 0 0;
+          color: #4f6658;
+          font-size: 11px;
+          line-height: 1.65;
+          word-break: keep-all;
+        }
+
+        .sample-dashboard-more > span {
+          display: block;
+          margin-top: 8px;
+          color: #647b6b;
+          font-size: 10px;
+          font-weight: 700;
+        }        
 
         @media (max-width: 680px) {
           .hero-report.sample-dashboard {
