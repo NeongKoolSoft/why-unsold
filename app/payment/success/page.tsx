@@ -49,7 +49,12 @@ type GtagFunction = (
   params?: Record<string, unknown>
 ) => void;
 
-const REPORT_PRICE = 20000;
+const REPORT_PRICE = 9900;
+
+const VALID_REPORT_AMOUNTS = new Set([
+  9900,  // 현재 매도 정체 진단 가격
+  20000, // 가격 변경 전 주문 호환
+]);
 
 function getGtag(): GtagFunction | null {
   if (
@@ -537,8 +542,9 @@ function PaymentSuccessContent() {
       if (
         storedOrder.paymentId !==
           paymentId ||
-        storedOrder.amount !==
-          REPORT_PRICE ||
+        !VALID_REPORT_AMOUNTS.has(
+          storedOrder.amount
+        ) ||  
         !storedOrder.diagnosis ||
         typeof storedOrder.orderToken !==
           "string" ||

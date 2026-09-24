@@ -1591,9 +1591,15 @@ export async function POST(
       );
     }
 
+    const VALID_DIAGNOSIS_AMOUNTS = new Set([
+      9900,  // 현재 매도 정체 진단 가격
+      20000, // 가격 변경 전 발급된 진단 토큰 호환
+    ]);
+
     if (
-      verifiedAnalysis.amount !==
-      20000
+      !VALID_DIAGNOSIS_AMOUNTS.has(
+        verifiedAnalysis.amount
+      )
     ) {
       return NextResponse.json(
         {

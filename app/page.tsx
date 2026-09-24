@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -41,16 +42,11 @@ function trackGa4Event(eventName: string) {
 }
 
 export default function Home() {
-  const priceCheckProductRef = useRef<HTMLDivElement>(null);
   const diagnosisProductRef = useRef<HTMLDivElement>(null);
   const executionStrategyProductRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observedCards = [
-      {
-        element: priceCheckProductRef.current,
-        eventName: "price_check_product_view",
-      },
       {
         element: diagnosisProductRef.current,
         eventName: "diagnosis_product_view",
@@ -66,9 +62,14 @@ export default function Home() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (!entry.isIntersecting || entry.intersectionRatio < 0.5) return;
+          if (!entry.isIntersecting || entry.intersectionRatio < 0.5) {
+            return;
+          }
 
-          const eventName = entry.target.getAttribute("data-view-event");
+          const eventName = entry.target.getAttribute(
+            "data-view-event"
+          );
+
           if (!eventName || viewed.has(eventName)) return;
 
           viewed.add(eventName);
@@ -81,6 +82,7 @@ export default function Home() {
 
     observedCards.forEach(({ element, eventName }) => {
       if (!element) return;
+
       element.setAttribute("data-view-event", eventName);
       observer.observe(element);
     });
@@ -141,38 +143,27 @@ export default function Home() {
           </h1>
 
           <p className="hero-description">
-            매도 전 가격부터, 안 팔릴 때 원인과 다음 행동까지
+            매물은 내놓았는데 문의가 없거나 거래가 지연되고 있나요?
             <br className="desktop-break" />
-            최근 실거래와 거래 흐름으로 진단합니다.
+            실거래와 거래 흐름, 경쟁 매물 및 매수 반응을 함께 살펴
+            현재 막힌 지점과 다음 행동을 정리합니다.
           </p>
 
           <div className="hero-choice-list">
             <div className="hero-choice">
               <div className="hero-choice-copy">
-                <span>아직 매도 전이라면</span>
-                <strong>얼마에 내놓을지 먼저 확인하세요.</strong>
-              </div>
-              <a
-                className="primary-button hero-choice-button"
-                href="#price-check-product"
-                onClick={() => trackGa4Event("price_check_cta_click")}
-              >
-                내 아파트 매도가격 확인하기
-                <span aria-hidden="true">→</span>
-              </a>
-            </div>
-
-            <div className="hero-choice">
-              <div className="hero-choice-copy">
                 <span>이미 매도 중이라면</span>
-                <strong>왜 문의가 없는지 원인부터 확인하세요.</strong>
+                <strong>
+                  왜 안 팔리는지, 무엇부터 확인해야 할지 알아보세요.
+                </strong>
               </div>
+
               <a
                 className="primary-button hero-choice-button"
                 href="#diagnosis-product"
                 onClick={() => trackGa4Event("diagnosis_cta_click")}
               >
-                왜 안 팔리는지 진단하기
+                내 아파트 매도 정체 진단하기
                 <span aria-hidden="true">→</span>
               </a>
             </div>
@@ -183,9 +174,14 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="hero-report" aria-label="리센츠 매도 정체 진단 예시">
+        <div
+          className="hero-report"
+          aria-label="리센츠 매도 정체 진단 예시"
+        >
           <div className="report-topline">
-            <span className="report-label">실제 진단에서는 이런 것을 확인합니다</span>
+            <span className="report-label">
+              실제 진단에서는 이런 것을 확인합니다
+            </span>
             <span className="report-code">SAMPLE REPORT</span>
           </div>
 
@@ -226,7 +222,9 @@ export default function Home() {
 
           <div className="next-action">
             <span>다음 행동</span>
-            <p>입력한 경쟁 매물 최저가와의 가격 차이를 줄일 수 있는지 점검</p>
+            <p>
+              입력한 경쟁 매물 최저가와의 가격 차이를 줄일 수 있는지 점검
+            </p>
           </div>
 
           <p className="report-note">
@@ -247,43 +245,15 @@ export default function Home() {
           </p>
 
           <h2 id="sample-title">
-            필요한 만큼만,
+            왜 안 팔리는지 진단하고,
             <br />
-            현재 단계에 맞춰 제공합니다.
+            다음 행동까지 정리합니다.
           </h2>
         </div>
 
         <div className="sample-steps">
           <div className="sample-step-card">
             <span>1</span>
-
-            <strong>
-              매도 전 가격 위치
-            </strong>
-
-            <p>
-              최근 동일 면적 실거래와 단지 거래 흐름을
-              기준으로 입력한 희망가격이 어느 위치에
-              있는지 확인합니다.
-            </p>
-          </div>
-
-          <div className="sample-step-card">
-            <span>2</span>
-
-            <strong>
-              매도 전 가격 판단
-            </strong>
-
-            <p>
-              현재 가격을 유지할지, 조정 가능성을
-              검토할지 판단할 수 있도록 핵심 가격
-              차이와 확인사항을 정리합니다.
-            </p>
-          </div>
-
-          <div className="sample-step-card">
-            <span>3</span>
 
             <strong>
               매도 중 정체 원인
@@ -296,7 +266,7 @@ export default function Home() {
           </div>
 
           <div className="sample-step-card">
-            <span>4</span>
+            <span>2</span>
 
             <strong>
               매도 중 가격 전략
@@ -310,7 +280,7 @@ export default function Home() {
           </div>
 
           <div className="sample-step-card">
-            <span>5</span>
+            <span>3</span>
 
             <strong>
               30일 실행 순서
@@ -323,7 +293,7 @@ export default function Home() {
           </div>
 
           <div className="sample-step-card">
-            <span>6</span>
+            <span>4</span>
 
             <strong>
               유지·조정 판단 기준
@@ -349,70 +319,13 @@ export default function Home() {
           </p>
 
           <h2 id="pricing-title">
-            매도 단계에 맞는
+            현재 매도 상황에 맞는
             <br />
-            진단을 선택하세요.
+            진단과 실행전략을 선택하세요.
           </h2>
         </div>
 
         <div className="pricing-cards">
-          <div
-            ref={priceCheckProductRef}
-            className="pricing-card"
-            id="price-check-product"
-          >
-            <span className="recommended">
-              매도 전
-            </span>
-
-            <div>
-              <p className="plan-name">
-                매도 전 가격 진단
-              </p>
-
-              <p className="price">
-                <strong>
-                  2,900
-                </strong>
-                원
-              </p>
-
-              <p className="price-note">
-                단지 한 곳 · 전용면적 한 유형 기준
-              </p>
-            </div>
-
-            <ul>
-              <li>
-                최근 동일 면적 실거래 확인
-              </li>
-
-              <li>
-                단지 거래량과 거래 공백 확인
-              </li>
-
-              <li>
-                입력한 희망가격의 현재 위치
-              </li>
-
-              <li>
-                매도 전 가격 판단 포인트
-              </li>
-
-              <li>
-                저장·인쇄 가능한 가격 진단
-              </li>
-            </ul>
-
-            <a
-              className="primary-button dark"
-              href="/price-check"
-              onClick={() => trackGa4Event("price_check_product_click")}
-            >
-              가격 진단 시작하기
-            </a>
-          </div>
-
           <div
             ref={diagnosisProductRef}
             className="pricing-card featured"
@@ -478,7 +391,10 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="pricing-card" ref={executionStrategyProductRef}>
+          <div
+            className="pricing-card"
+            ref={executionStrategyProductRef}
+          >
             <span className="recommended">
               진단 후 실행
             </span>
@@ -549,23 +465,7 @@ export default function Home() {
 
             <div>
               <strong>
-                매도 전
-              </strong>
-
-              <p>
-                아직 매물을 내놓기 전이라면 실거래와
-                거래 흐름을 기준으로 희망가격부터
-                점검합니다.
-              </p>
-            </div>
-          </li>
-
-          <li>
-            <span>02</span>
-
-            <div>
-              <strong>
-                매도 중
+                매도 정체 진단
               </strong>
 
               <p>
@@ -576,7 +476,7 @@ export default function Home() {
           </li>
 
           <li>
-            <span>03</span>
+            <span>02</span>
 
             <div>
               <strong>
@@ -615,8 +515,8 @@ export default function Home() {
         </a>
 
         <p>
-          매도 전 가격부터 매도 중 정체 원인,
-          진단 후 30일 실행까지 데이터와 AI로 분석합니다.
+          매도 정체 원인부터 진단 후 30일 실행까지,
+          데이터와 AI로 분석합니다.
         </p>
 
         <div className="footer-links">
@@ -675,11 +575,9 @@ export default function Home() {
           scroll-behavior: smooth;
         }
 
-        #price-check-product,
         #diagnosis-product {
           scroll-margin-top: 24px;
         }
-
       `}</style>
     </main>
   );
