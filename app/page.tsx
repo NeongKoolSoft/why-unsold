@@ -383,20 +383,33 @@ export default function Home() {
           </div>
         </div>
 
+
         <div className="sample-report-notice">
           <span className="sample-report-notice-icon" aria-hidden="true">
-            ⓘ
+            +
           </span>
 
-          <p>
-            <strong>화면에는 리포트 첫 페이지 예시만 표시했습니다.</strong>
-            <br />
-            실제 구매 시에는 가격·시장 해석, 거래 유동성,
-            매수 반응과 병목 진단, 가격 전략과 실행 계획 등
-            <strong> 상세 분석 6페이지가 추가로 제공됩니다.</strong>
-            <span>현재 리포트 구성 기준 · 총 7페이지</span>
-          </p>
-        </div>        
+          <div className="sample-report-notice-content">
+            <span className="sample-report-notice-label">
+              샘플 리포트 안내
+            </span>
+
+            <strong className="sample-report-notice-title">
+              실제 리포트는 상세 분석 6페이지가 더 제공됩니다.
+            </strong>
+
+            <p>
+              현재 화면은 첫 페이지의 구성 예시입니다.
+              실제 구매 시 가격·시장 해석, 거래 유동성,
+              매수 반응과 병목 진단, 가격 전략과 실행 계획 등을
+              추가로 확인할 수 있습니다.
+            </p>
+
+            <span className="sample-report-notice-pages">
+              현재 리포트 구성 기준 · 총 7페이지
+            </span>
+          </div>
+        </div>      
         </div>
       </section>
 
@@ -1097,45 +1110,74 @@ export default function Home() {
           max-width: none;
         }
 
-        /* 리포트 바깥 안내: PC와 모바일 공통 */
+
+        /* 샘플 리포트 바깥 — 추가 페이지 안내 배너 */
+
         .sample-report-column .sample-report-notice {
           display: flex;
           align-items: flex-start;
-          gap: 9px;
+          gap: 12px;
           width: 100%;
-          margin-top: 12px;
-          padding: 11px 13px;
-          border: 1px dashed #c9d7cf;
-          border-radius: 8px;
-          background: #f7f8f5;
+          margin-top: 14px;
+          padding: 17px 18px;
+          border: 0;
+          border-radius: 10px;
+          background: #105b43;
           box-sizing: border-box;
         }
 
         .sample-report-notice-icon {
+          display: grid;
+          width: 27px;
+          height: 27px;
           flex: 0 0 auto;
-          color: #597567;
-          font-size: 17px;
-          line-height: 1.4;
+          place-items: center;
+          border-radius: 50%;
+          background: #d9f1e2;
+          color: #105b43;
+          font-size: 21px;
+          font-weight: 800;
+          line-height: 1;
         }
 
-        .sample-report-notice p {
-          margin: 0;
-          color: #58675e;
-          font-size: 11px;
-          line-height: 1.6;
+        .sample-report-notice-content {
+          min-width: 0;
+        }
+
+        .sample-report-notice-label {
+          display: block;
+          color: #c6e7d3;
+          font-size: 10px;
+          font-weight: 700;
+        }
+
+        .sample-report-notice-title {
+          display: block;
+          margin-top: 5px;
+          color: #ffffff;
+          font-size: 17px;
+          font-weight: 800;
+          line-height: 1.45;
           word-break: keep-all;
         }
 
-        .sample-report-notice p > strong {
-          color: #2d4939;
-          font-weight: 800;
+        .sample-report-notice-content p {
+          margin: 9px 0 0;
+          color: #e1efe6;
+          font-size: 11px;
+          line-height: 1.65;
+          word-break: keep-all;
         }
 
-        .sample-report-notice p > span {
-          display: block;
-          margin-top: 5px;
-          color: #7b857d;
+        .sample-report-notice-pages {
+          display: inline-block;
+          margin-top: 10px;
+          padding: 5px 9px;
+          border-radius: 4px;
+          background: #28765a;
+          color: #ffffff;
           font-size: 10px;
+          font-weight: 700;
         }
 
         @media (max-width: 680px) {
