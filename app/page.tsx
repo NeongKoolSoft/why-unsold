@@ -195,7 +195,7 @@ export default function Home() {
           <div className="hero-choice-list">
             <div className="hero-choice">
               <div className="hero-choice-copy">
-                <span>이미 매도 중이라면</span>
+                <span>가격 차이만으로 판단이 어렵다면</span>
                 <strong>
                   왜 안 팔리는지, 무엇부터 확인해야 할지 알아보세요.
                 </strong>
