@@ -446,7 +446,7 @@ export default function Home() {
           <div className="sample-step-card">
             <span>1</span>
 
-            <strong>매도 중 정체 원인</strong>
+            <strong>정체 원인 진단</strong>
 
             <p>
               가격·거래 유동성·노출·문의 전환·현장 조건 중
@@ -457,7 +457,7 @@ export default function Home() {
           <div className="sample-step-card">
             <span>2</span>
 
-            <strong>매도 중 가격 전략</strong>
+            <strong>가격 전략</strong>
 
             <p>
               실거래와 경쟁 매물, 문의와 방문 흐름을
