@@ -215,8 +215,20 @@ export default function Home() {
           </div>
 
           <p className="hero-trust-note">
-            국토교통부 실거래 자동조회 · 단계별 1회 결제
+            국토교통부 실거래 자동조회
           </p>
+
+          <a
+            className="free-entry-hero"
+            href="/free-price-check"
+            onClick={() =>
+              trackGa4Event("free_price_check_cta_click")
+            }
+          >
+            먼저 무료로 희망가격과 실거래 비교하기
+            <span aria-hidden="true">→</span>
+          </a>
+
         </div>
 
         {/* =====================================================
@@ -494,6 +506,31 @@ export default function Home() {
             <br />
             진단과 실행전략을 선택하세요.
           </h2>
+        </div>
+
+        <div className="free-entry-card">
+          <div>
+            <span>무료 · 간단 확인</span>
+
+            <strong>
+              내 아파트 희망가격, 최근 실거래와 얼마나 차이 날까?
+            </strong>
+
+            <p>
+              동일 면적 실거래 한 건과의 차이를 먼저 확인합니다.
+              적정 매도가나 정체 원인 진단은 포함되지 않습니다.
+            </p>
+          </div>
+
+          <a
+            href="/free-price-check"
+            onClick={() =>
+              trackGa4Event("free_price_check_product_click")
+            }
+          >
+            무료 가격 확인하기
+            <span aria-hidden="true">→</span>
+          </a>
         </div>
 
         <div className="pricing-cards">

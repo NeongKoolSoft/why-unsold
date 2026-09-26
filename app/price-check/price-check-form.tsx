@@ -110,7 +110,11 @@ function trackGaEvent(
   );
 }
 
-export default function PriceCheckForm() {
+export default function PriceCheckForm({
+  freeMode = false,
+}: {
+  freeMode?: boolean;
+}) {
   const [
     regionName,
     setRegionName,
@@ -443,12 +447,12 @@ export default function PriceCheckForm() {
     }
 
     trackGaEvent(
-      "price_check_start",
+      freeMode ? "free_price_check_start" : "price_check_start",
       {
         item_id:
           "PRICE_CHECK",
         item_name:
-          "매도 전 가격 진단",
+          freeMode ? "무료 가격 확인" : "매도 전 가격 진단",
         region:
           regionName,
         district:
@@ -577,22 +581,21 @@ export default function PriceCheckForm() {
     <section className="price-check-form-shell">
       <div className="price-check-form-heading">
         <p>
-          01 / 매도 전 가격 진단
+          {freeMode ? "무료 / 가격 확인" : "01 / 매도 전 가격 진단"}
         </p>
 
         <h1>
-          내놓기 전,
-          <br />
-          희망가격의 위치를
-          <br />
-          확인하세요.
+          {freeMode ? (
+            <>내 아파트 가격을<br />실거래와 비교해 보세요.</>
+          ) : (
+            <>내놓기 전,<br />희망가격의 위치를<br />확인하세요.</>
+          )}
         </h1>
 
         <span>
-          최근 동일 면적 실거래와
-          단지 거래 흐름을 기준으로
-          입력한 희망가격이 어느
-          위치에 있는지 진단합니다.
+          {freeMode
+            ? "최근 동일 면적 실거래와 입력한 희망가격의 차이를 무료로 확인합니다. 개별 세대의 적정 가격이나 매도 정체 원인을 판단하는 결과는 아닙니다."
+            : "최근 동일 면적 실거래와 단지 거래 흐름을 기준으로 입력한 희망가격이 어느 위치에 있는지 진단합니다."}
         </span>
       </div>
 
@@ -923,19 +926,70 @@ export default function PriceCheckForm() {
         >
           {isChecking
             ? "가격 자료 확인 중…"
-            : "가격 진단 준비하기"}
+            : freeMode ? "무료로 가격 차이 확인하기" : "가격 진단 준비하기"}
         </button>
       </form>
 
-      {orderData ? (
-        <PriceCheckPayment
-          orderData={
-            orderData
-          }
-        />
+      {orderData && freeMode ? (
+        <section className="free-price-result" aria-live="polite">
+          <p className="result-kicker">무료 가격 확인 결과</p>
+          <h2>{apartmentName} · 전용 {formatArea(Number(exclusiveArea))}㎡</h2>
+          <div className="result-values">
+            <div>
+              <span>입력한 희망가격</span>
+              <strong>{Number(askingPrice).toLocaleString("ko-KR")}만원</strong>
+            </div>
+            <div>
+              <span>최근 동일 면적 실거래</span>
+              <strong>{orderData.market.latestTradePrice?.toLocaleString("ko-KR")}만원</strong>
+            </div>
+            <div>
+              <span>실거래와의 차이</span>
+              <strong>
+                {Number(askingPrice) - (orderData.market.latestTradePrice ?? 0) >= 0 ? "+" : "−"}
+                {Math.abs(Number(askingPrice) - (orderData.market.latestTradePrice ?? 0)).toLocaleString("ko-KR")}만원
+              </strong>
+            </div>
+          </div>
+          <p className="result-limit">
+            최근 실거래 한 건과의 단순 차이입니다.
+            마지막 동일 면적 거래 이후 {orderData.market.monthsSinceLastTrade ?? "확인되지 않은"}개월이 지났습니다.
+            거래 시점, 층·향·수리 상태,
+            현재 경쟁 매물 가격은 반영하지 않았습니다. 최근 실거래가 현재 시세나
+            적정 매도가를 뜻하지는 않습니다.
+          </p>
+          <a className="result-link" href="/diagnosis">
+            매도 중이라면 정체 원인 진단하기 (9,900원) →
+          </a>
+        </section>
+      ) : orderData ? (
+        <PriceCheckPayment orderData={orderData} />
       ) : null}
 
       <style jsx>{`
+        .free-price-result {
+          width: min(900px, 100%);
+          margin: 42px 0 0 auto;
+          padding: 28px;
+          border: 1px solid var(--ink);
+          background: var(--white);
+        }
+        .free-price-result .result-kicker {
+          color: var(--green);
+          font-size: 13px;
+          font-weight: 800;
+        }
+        .free-price-result h2 { margin: 8px 0 24px; font-size: 24px; }
+        .result-values { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .result-values div { padding: 16px; background: var(--warm); }
+        .result-values span { display: block; font-size: 12px; margin-bottom: 8px; }
+        .result-values strong { font-size: 18px; word-break: keep-all; }
+        .result-limit { margin: 22px 0; font-size: 13px; line-height: 1.7; color: #626b66; }
+        .result-link { display: inline-block; padding: 14px 18px; color: white; background: var(--green); font-weight: 700; text-decoration: none; }
+        @media (max-width: 680px) {
+          .free-price-result { padding: 20px; }
+          .result-values { grid-template-columns: 1fr; }
+        }
         .price-check-form-shell {
           width: min(
             1240px,
@@ -1253,6 +1307,13 @@ export default function PriceCheckForm() {
 
           .payment-ready {
             padding: 25px 21px;
+          }
+        }
+
+        @media (max-width: 680px) {
+          .price-check-form-heading h1 {
+            font-size: 34px;
+            line-height: 1.2;
           }
         }
       `}</style>

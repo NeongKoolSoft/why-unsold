@@ -2392,6 +2392,12 @@ main > footer > a:last-child {
     margin-bottom: 38px;
   }
 
+  .form-heading h2 {
+    font-size: 32px;
+    line-height: 1.25;
+    word-break: keep-all;
+  }
+
   .form-grid label.wide {
     grid-column: auto;
   }
@@ -3186,5 +3192,81 @@ main > footer > a:last-child {
 
   .report-first-next {
     margin-top: 3mm;
+  }
+}
+
+/* V2.5 무료 가격 확인 보조 입구 */
+.free-entry-hero {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 13px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.free-entry-card {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto 24px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.free-entry-card div {
+  min-width: 0;
+}
+
+.free-entry-card span {
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.free-entry-card strong {
+  display: block;
+  margin-top: 7px;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.free-entry-card p {
+  margin: 7px 0 0;
+  color: #626b66;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.free-entry-card a {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+  .free-entry-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 18px;
+  }
+
+  .free-entry-card a {
+    justify-content: space-between;
   }
 }
