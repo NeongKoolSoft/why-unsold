@@ -768,7 +768,7 @@ export default function PriceCheckForm({
             >
               {isLoadingApartments
                 ? "조회 중…"
-                : "단지 불러오기"}
+                : "불러오기"}
             </button>
           </div>
 
