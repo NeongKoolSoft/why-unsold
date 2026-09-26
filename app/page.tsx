@@ -540,7 +540,7 @@ export default function Home() {
             id="diagnosis-product"
           >
             <span className="recommended">
-              매도 중
+              진단
             </span>
 
             <div>
