@@ -301,7 +301,7 @@ export default function PriceCheckForm({
         0
       ) {
         throw new Error(
-          "최근 거래 자료에서 해당 동의 아파트 단지를 찾지 못했습니다."
+          "아파트 단지를 찾지 못했습니다. 동 이름은 법정동 기준으로 입력해주세요. 예: 잠실1동 → 잠실동"
         );
       }
 
