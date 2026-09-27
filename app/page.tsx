@@ -151,7 +151,7 @@ export default function Home() {
           >
             ?
           </span>
-          <span>왜 안 팔릴까?</span>
+          <span>내 집 매도</span>
         </a>
 
         <a
@@ -186,48 +186,79 @@ export default function Home() {
           </h1>
 
           <p className="hero-description">
-            매물은 내놓았는데 문의가 없거나 거래가 지연되고 있나요?
-            <br className="desktop-break" />
-            실거래와 거래 흐름, 경쟁 매물 및 매수 반응을 함께 살펴
-            현재 막힌 지점과 다음 행동을 정리합니다.
-          </p>
+            먼저 무료로 희망가격과 최근 실거래를 비교해보세요.
+            <br className="mobile-break" />
+            가격 차이만으로 판단이 어렵다면
+            무엇부터 확인해야 할지 알아보세요.
+          </p>          
 
-          <div className="hero-choice-list">
-            <div className="hero-choice">
-              <div className="hero-choice-copy">
-                <span>가격 차이만으로 판단이 어렵다면</span>
-                <strong>
-                  왜 안 팔리는지, 무엇부터 확인해야 할지 알아보세요.
-                </strong>
-              </div>
+          <div
+            className="hero-flow"
+            aria-label="추천 이용 순서"
+          >
+            <div className="hero-flow-heading">
+              <span>추천 순서</span>
+              <strong>
+                먼저 가격을 확인해보세요.
+              </strong>
+            </div>
+
+            <div className="hero-flow-list">
+              <a
+                className="hero-flow-card hero-flow-card-primary"
+                href="/free-price-check"
+                onClick={() =>
+                  trackGa4Event("free_price_check_cta_click")
+                }
+              >
+                <span className="hero-flow-number">1</span>
+
+                <div className="hero-flow-copy">
+                  <span>무료 가격 확인</span>
+                  <strong>
+                    희망가격과 최근 실거래부터 비교하기
+                  </strong>
+                  <small>
+                    동일 면적 최근 실거래와 현재 희망가격의 차이를 확인합니다.
+                  </small>
+                </div>
+
+                <span
+                  className="hero-flow-arrow"
+                  aria-hidden="true"
+                >
+                  →
+                </span>
+              </a>
 
               <a
-                className="primary-button hero-choice-button"
+                className="hero-flow-card hero-flow-card-secondary"
                 href="#diagnosis-product"
                 onClick={() =>
                   trackGa4Event("diagnosis_cta_click")
                 }
               >
-                내 아파트 매도 정체 진단하기
-                <span aria-hidden="true">→</span>
+                <span className="hero-flow-number">2</span>
+
+                <div className="hero-flow-copy">
+                  <span>매도 정체 진단</span>
+                  <strong>
+                    가격 차이만으로 판단이 어렵다면 원인 진단하기
+                  </strong>
+                  <small>
+                    가격·거래 흐름·매수 반응을 함께 살펴 막힌 지점을 확인합니다.
+                  </small>
+                </div>
+
+                <span
+                  className="hero-flow-arrow"
+                  aria-hidden="true"
+                >
+                  →
+                </span>
               </a>
             </div>
           </div>
-
-          <p className="hero-trust-note">
-            국토교통부 실거래 자동조회
-          </p>
-
-          <a
-            className="free-entry-hero"
-            href="/free-price-check"
-            onClick={() =>
-              trackGa4Event("free_price_check_cta_click")
-            }
-          >
-            먼저 무료로 희망가격과 실거래 비교하기
-            <span aria-hidden="true">→</span>
-          </a>
 
         </div>
 
@@ -670,7 +701,7 @@ export default function Home() {
             ?
           </span>
 
-          <span>왜 안 팔릴까?</span>
+          <span>내 집 매도</span>
         </a>
 
         <p>
