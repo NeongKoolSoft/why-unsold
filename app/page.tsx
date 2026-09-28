@@ -563,39 +563,51 @@ export default function Home() {
           </h2>
         </div>
 
-        <div className="free-entry-card">
-          <div>
-            <span>무료 · 간단 확인</span>
+        <div className="pricing-cards">
 
-            <strong>
-              내 아파트 희망가격, 최근 실거래와 얼마나 차이 날까?
-            </strong>
+          <div className="pricing-card">
+            <span className="recommended">
+              1단계 · 무료
+            </span>
 
-            <p>
-              동일 면적 실거래 한 건과의 차이를 먼저 확인합니다.
-              적정 매도가나 정체 원인 진단은 포함되지 않습니다.
-            </p>
+            <div>
+              <p className="plan-name">
+                무료 가격 확인
+              </p>
+
+              <p className="price">
+                <strong>0</strong>원
+              </p>
+
+              <p className="price-note">
+                단지 한 곳 · 전용면적 한 유형 기준
+              </p>
+            </div>
+
+            <ul>
+              <li>최근 동일 면적 실거래 확인</li>
+              <li>현재 희망가격과의 차이 확인</li>
+              <li>내 희망가격의 현재 위치 간단 확인</li>
+            </ul>
+
+            <a
+              className="primary-button dark"
+              href="/free-price-check"
+              onClick={() =>
+                trackGa4Event("free_price_check_product_click")
+              }
+            >
+              무료로 가격 확인하기
+            </a>
           </div>
 
-          <a
-            href="/free-price-check"
-            onClick={() =>
-              trackGa4Event("free_price_check_product_click")
-            }
-          >
-            무료 가격 확인하기
-            <span aria-hidden="true">→</span>
-          </a>
-        </div>
-
-        <div className="pricing-cards">
           <div
             ref={diagnosisProductRef}
             className="pricing-card featured"
             id="diagnosis-product"
           >
             <span className="recommended">
-              진단
+              2단계 · 진단
             </span>
 
             <div>
@@ -638,7 +650,7 @@ export default function Home() {
             ref={executionStrategyProductRef}
           >
             <span className="recommended">
-              진단 후 실행
+              3단계 · 진단 후 실행
             </span>
 
             <div>

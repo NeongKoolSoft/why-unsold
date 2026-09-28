@@ -634,7 +634,7 @@ a {
 
 .pricing-cards {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   width: 100%;
   max-width: 900px;
   margin-right: auto;
@@ -648,7 +648,7 @@ a {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 34px 28px;
+  padding: 28px 28px 26px;
   border: 1px solid var(--ink);
   background: #fff;
 }
