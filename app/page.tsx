@@ -176,21 +176,20 @@ export default function Home() {
         <div className="hero-copy">
           <p className="eyebrow">
             <span />
-            아파트 매도 진단
+            아파트 매도 가격 확인
           </p>
 
           <h1>
             내 아파트,
             <br />
-            <strong>지금 어떻게 팔아야 할까?</strong>
+            <strong>얼마에 내놓아야 할까?</strong>
           </h1>
 
           <p className="hero-description">
-            먼저 무료로 희망가격과 최근 실거래를 비교해보세요.
+            최근 동일 면적 실거래와 희망가격을 먼저 비교해보세요.
             <br className="mobile-break" />
-            가격 차이만으로 판단이 어렵다면
-            무엇부터 확인해야 할지 알아보세요.
-          </p>          
+            가격 차이를 확인한 뒤, 매도 중이라면 왜 반응이 없는지도 이어서 확인할 수 있습니다.
+          </p>       
 
           <div
             className="hero-flow"
@@ -199,7 +198,7 @@ export default function Home() {
             <div className="hero-flow-heading">
               <span>추천 순서</span>
               <strong>
-                먼저 가격을 확인해보세요.
+                먼저 내 아파트 가격을 확인해보세요.
               </strong>
             </div>
 
@@ -216,10 +215,10 @@ export default function Home() {
                 <div className="hero-flow-copy">
                   <span>무료 가격 확인</span>
                   <strong>
-                    희망가격과 최근 실거래부터 비교하기
+                    내 아파트 가격 먼저 확인하기
                   </strong>
                   <small>
-                    동일 면적 최근 실거래와 현재 희망가격의 차이를 확인합니다.
+                    최근 동일 면적 실거래와 현재 희망가격의 차이를 확인합니다.
                   </small>
                 </div>
 
@@ -241,12 +240,12 @@ export default function Home() {
                 <span className="hero-flow-number">2</span>
 
                 <div className="hero-flow-copy">
-                  <span>매도 정체 진단</span>
+                  <span>매도 중이라면</span>
                   <strong>
-                    가격 차이만으로 판단이 어렵다면 원인 진단하기
+                    가격을 조정할지 더 기다릴지 확인하기
                   </strong>
                   <small>
-                    가격·거래 흐름·매수 반응을 함께 살펴 막힌 지점을 확인합니다.
+                    가격·거래 흐름·매수 반응을 함께 살펴 현재 막힌 지점을 확인합니다.
                   </small>
                 </div>
 
