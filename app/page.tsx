@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const samplePrices = {
   latestTrade: "29억 2,000만원",
@@ -85,6 +85,7 @@ function trackGa4Event(eventName: string) {
 export default function Home() {
   const diagnosisProductRef = useRef<HTMLDivElement>(null);
   const executionStrategyProductRef = useRef<HTMLDivElement>(null);
+  const [showSampleDetails, setShowSampleDetails] = useState(false);
 
   useEffect(() => {
     const observedCards = [
@@ -338,91 +339,115 @@ export default function Home() {
             </div>
           </div>
 
-          <section className="sample-dashboard-panel">
-            <div className="sample-dashboard-section-title">
-              <strong>▥ 핵심 근거 3가지</strong>
-              <span>가격 차이와 확인이 필요한 정보를 구분합니다.</span>
-            </div>
+          <button
+            type="button"
+            className="sample-dashboard-toggle"
+            aria-expanded={showSampleDetails}
+            onClick={() => {
+              setShowSampleDetails((prev) => !prev);
 
-            <div className="sample-dashboard-evidence-grid">
-              {sampleEvidence.map((item, index) => (
-                <div
-                  className="sample-dashboard-evidence-card"
-                  key={item.label}
-                >
-                  <div className="sample-dashboard-card-heading">
-                    <span>{index + 1}</span>
-                    <strong>{item.label}</strong>
-                  </div>
+              if (!showSampleDetails) {
+                trackGa4Event("sample_report_expand");
+              }
+            }}
+          >
+            {showSampleDetails
+              ? "샘플 리포트 접기 ↑"
+              : "샘플 리포트 더 보기 ↓"}
+          </button>          
 
-                  <h3>{item.title}</h3>
-                  <p>{item.description}</p>
+          {showSampleDetails && (
+            <div className="sample-dashboard-details">            
+              <section className="sample-dashboard-panel">
+                <div className="sample-dashboard-section-title">
+                  <strong>▥ 핵심 근거 3가지</strong>
+                  <span>가격 차이와 확인이 필요한 정보를 구분합니다.</span>
                 </div>
-              ))}
-            </div>
-          </section>
 
-          <section className="sample-dashboard-panel sample-dashboard-cause-panel">
-            <div className="sample-dashboard-section-title">
-              <strong>◎ 원인 분석</strong>
-              <span>점검할 요인과 아직 모르는 정보를 구분합니다.</span>
-            </div>
+                <div className="sample-dashboard-evidence-grid">
+                  {sampleEvidence.map((item, index) => (
+                    <div
+                      className="sample-dashboard-evidence-card"
+                      key={item.label}
+                    >
+                      <div className="sample-dashboard-card-heading">
+                        <span>{index + 1}</span>
+                        <strong>{item.label}</strong>
+                      </div>
 
-            <div className="sample-dashboard-cause-list">
-              {sampleCauses.map((item, index) => (
-                <div
-                  className="sample-dashboard-cause-row"
-                  key={item.label}
-                >
-                  <span className="sample-dashboard-number">
-                    {index + 1}
-                  </span>
-
-                  <div>
-                    <div className="sample-dashboard-cause-heading">
-                      <strong>{item.label}</strong>
-                      <span>{item.title}</span>
+                      <h3>{item.title}</h3>
+                      <p>{item.description}</p>
                     </div>
-
-                    <p>{item.description}</p>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </section>
+              </section>
 
-          <section className="sample-dashboard-panel sample-dashboard-action-panel">
-            <div className="sample-dashboard-section-title">
-              <strong>▤ 지금 할 일</strong>
-              <span>다음 판단을 위해 먼저 확인할 행동입니다.</span>
-            </div>
-
-            <div className="sample-dashboard-action-grid">
-              {sampleActions.map((action, index) => (
-                <div
-                  className="sample-dashboard-action-card"
-                  key={action}
-                >
-                  <span className="sample-dashboard-number">
-                    {index + 1}
-                  </span>
-
-                  <strong>{action}</strong>
+              <section className="sample-dashboard-panel sample-dashboard-cause-panel">
+                <div className="sample-dashboard-section-title">
+                  <strong>◎ 원인 분석</strong>
+                  <span>점검할 요인과 아직 모르는 정보를 구분합니다.</span>
                 </div>
-              ))}
-            </div>
-          </section>
+
+                <div className="sample-dashboard-cause-list">
+                  {sampleCauses.map((item, index) => (
+                    <div
+                      className="sample-dashboard-cause-row"
+                      key={item.label}
+                    >
+                      <span className="sample-dashboard-number">
+                        {index + 1}
+                      </span>
+
+                      <div>
+                        <div className="sample-dashboard-cause-heading">
+                          <strong>{item.label}</strong>
+                          <span>{item.title}</span>
+                        </div>
+
+                        <p>{item.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="sample-dashboard-panel sample-dashboard-action-panel">
+                <div className="sample-dashboard-section-title">
+                  <strong>▤ 지금 할 일</strong>
+                  <span>다음 판단을 위해 먼저 확인할 행동입니다.</span>
+                </div>
+
+                <div className="sample-dashboard-action-grid">
+                  {sampleActions.map((action, index) => (
+                    <div
+                      className="sample-dashboard-action-card"
+                      key={action}
+                    >
+                      <span className="sample-dashboard-number">
+                        {index + 1}
+                      </span>
+
+                      <strong>{action}</strong>
+                    </div>
+                  ))}
+                </div>
+              </section>
 
 
-          <p className="sample-dashboard-disclaimer">
-            설명용 입력값으로 만든 구성 예시 · 현재 시세 또는
-            실제 매물 진단 결과가 아닙니다.
-          </p>
+              <p className="sample-dashboard-disclaimer">
+                설명용 입력값으로 만든 구성 예시 · 현재 시세 또는
+                실제 매물 진단 결과가 아닙니다.
+              </p>
 
-          <div className="sample-dashboard-footer">
-            <span>데이터 + AI 기반 매도 분석</span>
-            <span>거래 성사를 보장하지 않습니다.</span>
-          </div>
+              <div className="sample-dashboard-footer">
+                <span>데이터 + AI 기반 매도 분석</span>
+                <span>거래 성사를 보장하지 않습니다.</span>
+              </div>
+
+            </div>              
+          )}
+
+
         </div>
 
 
@@ -1296,6 +1321,28 @@ export default function Home() {
           }
           
         }
+
+        .sample-dashboard-toggle {
+          width: 100%;
+          margin-top: 16px;
+          padding: 13px 16px;
+          border: 1px solid #cfe0d4;
+          border-radius: 8px;
+          background: #f7faf7;
+          color: #176247;
+          font-size: 12px;
+          font-weight: 800;
+          cursor: pointer;
+        }
+
+        .sample-dashboard-toggle:hover {
+          background: #edf6ef;
+        }
+
+        .sample-dashboard-details {
+          margin-top: 4px;
+        }
+
       `}</style>
     </main>
   );
