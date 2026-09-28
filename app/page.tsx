@@ -1324,19 +1324,16 @@ export default function Home() {
 
         .sample-dashboard-toggle {
           width: 100%;
-          margin-top: 16px;
-          padding: 13px 16px;
-          border: 1px solid #cfe0d4;
-          border-radius: 8px;
-          background: #f7faf7;
+          margin-top: 18px;
+          padding: 11px 14px;
+          border: 0;
+          border-top: 1px solid #d9e5db;
+          border-radius: 0;
+          background: transparent;
           color: #176247;
           font-size: 12px;
           font-weight: 800;
           cursor: pointer;
-        }
-
-        .sample-dashboard-toggle:hover {
-          background: #edf6ef;
         }
 
         .sample-dashboard-details {
