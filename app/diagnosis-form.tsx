@@ -1360,7 +1360,56 @@ function buildDiagnosis(
   };
 }
 
-export default function DiagnosisForm() {
+type DiagnosisFormProps = {
+  initialRegionName?: string;
+  initialDistrictName?: string;
+  initialLawdCd?: string;
+  initialLegalDong?: string;
+
+  initialApartmentName?: string;
+  initialExclusiveArea?: string;
+
+  initialAskingPrice?: string;
+  initialReferenceTradePrice?: string;
+  initialRecentTradeCount?: string;
+  initialSameSizeTradeGapMonths?: string;
+
+  initialDaysListed?: string;
+  initialInquiries?: string;
+  initialVisits?: string;
+  initialNegotiations?: string;
+
+  initialDecision?: string;
+};
+
+export default function DiagnosisForm({
+  initialRegionName = "",
+  initialDistrictName = "",
+  initialLawdCd = "",
+  initialLegalDong = "",
+
+  initialApartmentName = "",
+  initialExclusiveArea = "",
+
+  initialAskingPrice = "",
+  initialReferenceTradePrice = "",
+  initialRecentTradeCount = "",
+  initialSameSizeTradeGapMonths = "",
+
+  initialDaysListed = "",
+  initialInquiries = "",
+  initialVisits = "",
+  initialNegotiations = "",
+
+  initialDecision = "",  
+}: DiagnosisFormProps) {  
+
+  void initialDistrictName;
+  void initialReferenceTradePrice;
+  void initialRecentTradeCount;
+  void initialSameSizeTradeGapMonths;
+  void initialDecision;  
+
   const [
     result,
     setResult,
@@ -1449,7 +1498,7 @@ export default function DiagnosisForm() {
     selectedApartmentName,
     setSelectedApartmentName,
   ] =
-    useState("");
+    useState(initialApartmentName);
 
   const [
     isLoadingAreas,
@@ -1491,7 +1540,7 @@ export default function DiagnosisForm() {
     selectedExclusiveArea,
     setSelectedExclusiveArea,
   ] =
-    useState("");
+    useState(initialExclusiveArea);
 
   const [
     isManualAreaInput,
@@ -1503,13 +1552,13 @@ export default function DiagnosisForm() {
     selectedRegionName,
     setSelectedRegionName,
   ] =
-    useState("");
+    useState(initialRegionName);
 
   const [
     selectedDistrictCode,
     setSelectedDistrictCode,
   ] =
-    useState("");
+    useState(initialLawdCd);
 
   const formRef =
     useRef<HTMLFormElement>(
@@ -2604,6 +2653,7 @@ useEffect(() => {
               <input
                 name="legalDong"
                 required
+                defaultValue={initialLegalDong}
                 placeholder="예: 잠실동"
                 onChange={
                   resetApartmentOptions
@@ -2805,18 +2855,24 @@ useEffect(() => {
                       <input
                         name="exclusiveArea"
                         type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]+"
+                        inputMode="decimal"
+                        pattern="[0-9]+([.][0-9]+)?"
                         required
                         value={selectedExclusiveArea}
-                        placeholder="예: 84"
+                        placeholder="예: 84.43"
                         onChange={(event) => {
+                          const value =
+                            event.target.value
+                              .replace(/[^0-9.]/g, "")
+                              .replace(
+                                /(\..*)\./g,
+                                "$1"
+                              );
+
                           setSelectedExclusiveArea(
-                            event.target.value.replace(
-                              /[^0-9]/g,
-                              ""
-                            )
+                            value
                           );
+
                           setAreaLookupError("");
                           setLookupError("");
                           setReportError("");
@@ -2967,6 +3023,7 @@ useEffect(() => {
                   min="1"
                   step="1"
                   required
+                  defaultValue={initialAskingPrice}
                   placeholder="30000"
                 />
 
@@ -3038,6 +3095,7 @@ useEffect(() => {
                   min="0"
                   step="1"
                   required
+                  defaultValue={initialDaysListed}
                   placeholder="60"
                 />
 
@@ -3057,6 +3115,7 @@ useEffect(() => {
                   type="number"
                   min="0"
                   step="1"
+                  defaultValue={initialInquiries}
                   placeholder="모르면 비워두세요"
                 />
 
@@ -3076,6 +3135,7 @@ useEffect(() => {
                   type="number"
                   min="0"
                   step="1"
+                  defaultValue={initialVisits}
                   placeholder="모르면 비워두세요"
                 />
 
@@ -3095,6 +3155,7 @@ useEffect(() => {
                   type="number"
                   min="0"
                   step="1"
+                  defaultValue={initialNegotiations}
                   placeholder="모르면 비워두세요"
                 />
 
@@ -3477,6 +3538,10 @@ useEffect(() => {
               style={{
                 marginTop: 22,
                 width: "100%",
+                whiteSpace: "nowrap",
+                fontSize: 14,
+                paddingLeft: 14,
+                paddingRight: 14,
               }}
             >
               {isOpeningPayment

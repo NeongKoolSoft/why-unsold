@@ -10,7 +10,35 @@ const businessInfo = {
   mailOrderNumber: "2026-부산진구-1211",
 };
 
-export default function DiagnosisPage() {
+type DiagnosisPageProps = {
+  searchParams: Promise<{
+    regionName?: string;
+    districtName?: string;
+    lawdCd?: string;
+    legalDong?: string;
+
+    apartmentName?: string;
+    exclusiveArea?: string;
+
+    askingPrice?: string;
+    referenceTradePrice?: string;
+    recentTradeCount?: string;
+    sameSizeTradeGapMonths?: string;
+
+    daysListed?: string;
+    inquiries?: string;
+    visits?: string;
+    negotiations?: string;
+
+    decision?: string;
+  }>;
+};
+
+export default async function DiagnosisPage({
+  searchParams,
+}: DiagnosisPageProps) {
+  const params = await searchParams;
+
   return (
     <main>
       <nav
@@ -49,7 +77,53 @@ export default function DiagnosisPage() {
         id="application"
         aria-label="매도 정체 진단 신청서"
       >
-        <DiagnosisForm />
+        <DiagnosisForm
+          initialRegionName={
+            params.regionName ?? ""
+          }
+          initialDistrictName={
+            params.districtName ?? ""
+          }
+          initialLawdCd={
+            params.lawdCd ?? ""
+          }
+          initialLegalDong={
+            params.legalDong ?? ""
+          }
+          initialApartmentName={
+            params.apartmentName ?? ""
+          }
+          initialExclusiveArea={
+            params.exclusiveArea ?? ""
+          }
+          initialAskingPrice={
+            params.askingPrice ?? ""
+          }
+          initialReferenceTradePrice={
+            params.referenceTradePrice ?? ""
+          }
+          initialRecentTradeCount={
+            params.recentTradeCount ?? ""
+          }
+          initialSameSizeTradeGapMonths={
+            params.sameSizeTradeGapMonths ?? ""
+          }
+          initialDaysListed={
+            params.daysListed ?? ""
+          }
+          initialInquiries={
+            params.inquiries ?? ""
+          }
+          initialVisits={
+            params.visits ?? ""
+          }
+          initialNegotiations={
+            params.negotiations ?? ""
+          }
+          initialDecision={
+            params.decision ?? ""
+          }
+        />
       </section>
 
       <footer>

@@ -958,9 +958,55 @@ export default function PriceCheckForm({
             현재 경쟁 매물 가격은 반영하지 않았습니다. 최근 실거래가 현재 시세나
             적정 매도가를 뜻하지는 않습니다.
           </p>
-          <a className="result-link" href="/diagnosis">
-            매도 중이라면 정체 원인 진단하기 (9,900원) →
+
+          <a
+            className="result-link"
+            href={`/decision?${new URLSearchParams({
+              regionName:
+                orderData.property.regionName,
+
+              districtName:
+                orderData.property.districtName,
+
+              lawdCd:
+                orderData.property.lawdCd,
+
+              legalDong:
+                orderData.property.legalDong,
+
+              askingPrice: String(
+                orderData.property.askingPrice
+              ),
+
+              referenceTradePrice: String(
+                orderData.market.latestTradePrice ?? ""
+              ),
+
+              recentTradeCount: String(
+                orderData.market.sameAreaTransactionCount12m
+              ),
+
+              sameSizeTradeGapMonths: String(
+                orderData.market.monthsSinceLastTrade ?? ""
+              ),
+
+              apartmentName:
+                orderData.property.apartmentName,
+
+              exclusiveArea: String(
+                orderData.property.exclusiveArea
+              ),
+            }).toString()}`}
+            onClick={() =>
+              trackGaEvent("decision_cta_click", {
+                item_id: "DECISION",
+                item_name: "현재 매도 상황 판단",
+              })
+            }
+          >
+            가격을 유지할지 조정할지 확인하기 →
           </a>
+
         </section>
       ) : orderData ? (
         <PriceCheckPayment orderData={orderData} />
