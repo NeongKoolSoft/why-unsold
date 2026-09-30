@@ -4,57 +4,57 @@
 import { useEffect, useRef, useState } from "react";
 
 const samplePrices = {
-  latestTrade: "29억 2,000만원",
-  lowestListing: "34억 4,995만원",
-  askingPrice: "36억원",
+  pricePosition: "실거래 대비 -4.8%",
+  listedDays: "등록 후 42일",
+  marketLiquidity: "거래가 드문 편",
 };
 
 const sampleEvidence = [
   {
-    label: "실거래 대비",
-    title: "희망가가 비교 거래가격보다 높습니다.",
+    label: "가격 위치",
+    title: "최근 실거래보다 낮은 가격입니다.",
     description:
-      "예시 희망가는 예시 실거래가격보다 6억 8,000만원 높습니다. 거래 시점과 층·방향 등 조건을 함께 확인해야 합니다.",
+      "예시 희망가격은 최근 비교 실거래보다 약 4.8% 낮습니다. 현재 반응 부족을 가격만으로 설명하기는 어렵습니다.",
   },
   {
-    label: "경쟁 매물 대비",
-    title: "입력한 경쟁 매물 최저가보다 높습니다.",
+    label: "매도 기간",
+    title: "등록 후 42일이 지났습니다.",
     description:
-      "예시 희망가는 입력한 경쟁 매물 최저가보다 1억 5,005만원 높습니다. 실제로 비교 가능한 매물인지 먼저 확인해야 합니다.",
+      "초기 반응을 지켜보는 단계를 지나 현재 매물 조건과 노출 상태를 함께 점검할 시점입니다.",
   },
   {
-    label: "매수 반응",
-    title: "가격 차이만으로 정체 원인을 확정할 수 없습니다.",
+    label: "시장 유동성",
+    title: "동일 면적 거래가 드문 편입니다.",
     description:
-      "문의·방문·협상 횟수가 제시되지 않은 예시입니다. 실제 진단에서는 입력된 매수 반응을 함께 살펴봅니다.",
+      "거래 공백이 길면 가격만으로 반응 부족 원인을 판단하기 어렵습니다.",
   },
 ];
 
 const sampleCauses = [
   {
-    label: "주요 점검 요인",
-    title: "가격 경쟁력",
+    label: "먼저 점검",
+    title: "매물 노출 상태",
     description:
-      "희망가가 두 비교 가격보다 높아, 매수자가 다른 매물과 비교할 때 가격 차이가 영향을 주는지 확인할 필요가 있습니다.",
+      "중개업소와 매물 플랫폼에서 가격·사진·설명·노출 상태가 제대로 전달되고 있는지 확인합니다.",
   },
   {
-    label: "함께 볼 신호",
-    title: "비교 매물의 조건",
+    label: "함께 확인",
+    title: "매물 조건",
     description:
-      "면적뿐 아니라 층·방향·수리 상태·입주 가능일이 비슷한지 확인해야 가격 차이를 제대로 해석할 수 있습니다.",
+      "층·방향·수리 상태·입주 가능일 등 가격 외 조건이 매수 반응에 영향을 주는지 살펴봅니다.",
   },
   {
-    label: "추가 확인 필요",
-    title: "실제 문의와 방문",
+    label: "다음 판단",
+    title: "문의·방문 반응",
     description:
-      "가격 차이를 확인한 뒤에도 매수 반응을 기록해야 가격·노출·방문 전환 중 어느 단계가 막혔는지 구분할 수 있습니다.",
+      "조건을 점검한 뒤 문의와 방문 반응이 달라지는지 확인해 다음 가격 판단에 활용합니다.",
   },
 ];
 
 const sampleActions = [
-  "최근 실거래의 계약 시점과 층·방향 등 비교 조건 확인",
-  "입력한 경쟁 매물의 실제 등록 여부와 가격·조건 비교",
-  "중개업소에 최근 문의·방문 횟수를 확인하고 기록",
+  "매물 노출 상태와 안내 내용 점검",
+  "층·방향·수리 상태·입주 조건 다시 확인",
+  "점검 후 문의·방문 반응 다시 확인",
 ];
 
 const businessInfo = {
@@ -166,7 +166,7 @@ export default function Home() {
           className="nav-link"
           href="#sample"
         >
-          리포트 구성
+          제공 내용
         </a>
       </nav>
 
@@ -177,20 +177,21 @@ export default function Home() {
         <div className="hero-copy">
           <p className="eyebrow">
             <span />
-            아파트 매도 가격 확인
+            아파트 매도 판단
           </p>
 
           <h1>
             내 아파트,
             <br />
-            <strong>얼마에 내놓아야 할까?</strong>
+            <strong>지금 가격을 유지해도 될까?</strong>
           </h1>
 
           <p className="hero-description">
-            최근 동일 면적 실거래와 희망가격을 먼저 비교해보세요.
+            최근 실거래와 현재 희망가격을 먼저 비교해보세요.
             <br className="mobile-break" />
-            가격 차이를 확인한 뒤, 매도 중이라면 왜 반응이 없는지도 이어서 확인할 수 있습니다.
-          </p>       
+            매도 중이라면 문의·방문 반응까지 함께 보고
+            가격을 유지할지, 조정할지, 더 기다릴지 확인할 수 있습니다.
+          </p>     
 
           <div
             className="hero-flow"
@@ -199,7 +200,7 @@ export default function Home() {
             <div className="hero-flow-heading">
               <span>추천 순서</span>
               <strong>
-                먼저 내 아파트 가격을 확인해보세요.
+                가격 위치를 확인한 뒤 현재 매도 판단까지 이어서 확인해보세요.
               </strong>
             </div>
 
@@ -216,7 +217,7 @@ export default function Home() {
                 <div className="hero-flow-copy">
                   <span>무료 가격 확인</span>
                   <strong>
-                    내 아파트 가격 먼저 확인하기
+                    현재 희망가격 위치 확인하기
                   </strong>
                   <small>
                     최근 동일 면적 실거래와 현재 희망가격의 차이를 확인합니다.
@@ -235,7 +236,7 @@ export default function Home() {
                 className="hero-flow-card hero-flow-card-secondary"
                 href="#diagnosis-product"
                 onClick={() =>
-                  trackGa4Event("diagnosis_cta_click")
+                  trackGa4Event("decision_home_cta_click")
                 }
               >
                 <span className="hero-flow-number">2</span>
@@ -243,10 +244,11 @@ export default function Home() {
                 <div className="hero-flow-copy">
                   <span>매도 중이라면</span>
                   <strong>
-                    가격을 조정할지 더 기다릴지 확인하기
+                    지금 가격을 유지할지 조정할지 확인하기
                   </strong>
                   <small>
-                    가격·거래 흐름·매수 반응을 함께 살펴 현재 막힌 지점을 확인합니다.
+                    매도 기간과 문의·방문 반응을 함께 살펴
+                    현재 우선 검토할 방향을 확인합니다.
                   </small>
                 </div>
 
@@ -269,215 +271,219 @@ export default function Home() {
         <div className="sample-report-column">
           <div
             className="hero-report sample-dashboard"
-            aria-label="서울 잠실 리센츠 매도 정체 진단 샘플 리포트"
+            aria-label="현재 매도 판단 예시"
           >
-          <div className="sample-dashboard-topline">
-            <div className="sample-dashboard-topline-copy">
-              <span
-                className="sample-dashboard-top-icon"
-                aria-hidden="true"
-              >
-                ▥
+            <div className="sample-dashboard-topline">
+              <div className="sample-dashboard-topline-copy">
+                <span
+                  className="sample-dashboard-top-icon"
+                  aria-hidden="true"
+                >
+                  ▥
+                </span>
+
+                <div>
+                  <strong>
+                    현재 판단에서는 이런 정보를 함께 봅니다
+                  </strong>
+                  <p>
+                    설명용 매도 상황 예시 · 실제 매물 결과가 아닙니다
+                  </p>
+                </div>
+              </div>
+
+              <span className="sample-dashboard-code">
+                DECISION EXAMPLE
+              </span>
+            </div>
+
+            <div className="sample-dashboard-hero">
+              <span className="sample-dashboard-badge">
+                현재 매도 판단 예시
               </span>
 
-              <div>
-                <strong>
-                  실제 진단에서는 이런 점을 확인합니다
-                </strong>
-                <p>
-                  서울 송파구 잠실동 · 리센츠 · 전용 84.99㎡
-                </p>
-              </div>
-            </div>
+              <h2>
+                가격보다 다른 조건을 먼저
+                <br />
+                <em>점검할 단계입니다.</em>
+              </h2>
 
-            <span className="sample-dashboard-code">
-              SAMPLE REPORT
-            </span>
-          </div>
-
-          <div className="sample-dashboard-hero">
-            <span className="sample-dashboard-badge">
-              매도 정체 진단 예시
-            </span>
-
-            <h2>
-              희망가가 비교 기준보다 높아
-              <br />
-              <em>가격 경쟁력 점검이 필요합니다.</em>
-            </h2>
-
-            <p className="sample-dashboard-summary">
-              예시 희망가는 예시 실거래가격과 입력한 경쟁 매물
-              최저가보다 높습니다. 다만 가격 차이만으로 문의가
-              없는 이유를 확정할 수는 없습니다. 비교 매물의
-              조건과 실제 매수 반응을 함께 확인해야 합니다.
-            </p>
-
-            <div className="sample-dashboard-reason">
-              <strong>현재 먼저 점검할 요인</strong>
-              <span>희망가와 비교 가격의 차이</span>
-            </div>
-          </div>
-
-          <div className="sample-dashboard-price-grid">
-            <div className="sample-dashboard-price-card sample-dashboard-trade">
-              <span>▥ 최근 실거래</span>
-              <strong>{samplePrices.latestTrade}</strong>
-              <p>설명용 예시 거래가격</p>
-            </div>
-
-            <div className="sample-dashboard-price-card sample-dashboard-listing">
-              <span>◇ 경쟁 매물 최저가</span>
-              <strong>{samplePrices.lowestListing}</strong>
-              <p>예시로 입력한 매물 호가</p>
-            </div>
-
-            <div className="sample-dashboard-price-card sample-dashboard-asking">
-              <span>◎ 현재 희망가</span>
-              <strong>{samplePrices.askingPrice}</strong>
-              <p>예시로 입력한 희망가격</p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className="sample-dashboard-toggle"
-            aria-expanded={showSampleDetails}
-            onClick={() => {
-              setShowSampleDetails((prev) => !prev);
-
-              if (!showSampleDetails) {
-                trackGa4Event("sample_report_expand");
-              }
-            }}
-          >
-            {showSampleDetails
-              ? "샘플 리포트 접기 ↑"
-              : "샘플 리포트 더 보기 ↓"}
-          </button>          
-
-          {showSampleDetails && (
-            <div className="sample-dashboard-details">            
-              <section className="sample-dashboard-panel">
-                <div className="sample-dashboard-section-title">
-                  <strong>▥ 핵심 근거 3가지</strong>
-                  <span>가격 차이와 확인이 필요한 정보를 구분합니다.</span>
-                </div>
-
-                <div className="sample-dashboard-evidence-grid">
-                  {sampleEvidence.map((item, index) => (
-                    <div
-                      className="sample-dashboard-evidence-card"
-                      key={item.label}
-                    >
-                      <div className="sample-dashboard-card-heading">
-                        <span>{index + 1}</span>
-                        <strong>{item.label}</strong>
-                      </div>
-
-                      <h3>{item.title}</h3>
-                      <p>{item.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              <section className="sample-dashboard-panel sample-dashboard-cause-panel">
-                <div className="sample-dashboard-section-title">
-                  <strong>◎ 원인 분석</strong>
-                  <span>점검할 요인과 아직 모르는 정보를 구분합니다.</span>
-                </div>
-
-                <div className="sample-dashboard-cause-list">
-                  {sampleCauses.map((item, index) => (
-                    <div
-                      className="sample-dashboard-cause-row"
-                      key={item.label}
-                    >
-                      <span className="sample-dashboard-number">
-                        {index + 1}
-                      </span>
-
-                      <div>
-                        <div className="sample-dashboard-cause-heading">
-                          <strong>{item.label}</strong>
-                          <span>{item.title}</span>
-                        </div>
-
-                        <p>{item.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              <section className="sample-dashboard-panel sample-dashboard-action-panel">
-                <div className="sample-dashboard-section-title">
-                  <strong>▤ 지금 할 일</strong>
-                  <span>다음 판단을 위해 먼저 확인할 행동입니다.</span>
-                </div>
-
-                <div className="sample-dashboard-action-grid">
-                  {sampleActions.map((action, index) => (
-                    <div
-                      className="sample-dashboard-action-card"
-                      key={action}
-                    >
-                      <span className="sample-dashboard-number">
-                        {index + 1}
-                      </span>
-
-                      <strong>{action}</strong>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-
-              <p className="sample-dashboard-disclaimer">
-                설명용 입력값으로 만든 구성 예시 · 현재 시세 또는
-                실제 매물 진단 결과가 아닙니다.
+              <p className="sample-dashboard-summary">
+                예시 희망가격은 최근 실거래보다 낮지만,
+                등록 후 42일 동안 문의 1회, 방문 0회입니다.
+                거래가 드문 시장에서는 가격만으로 반응 부족 원인을
+                판단하기 어려워 다른 조건을 함께 확인할 필요가 있습니다.
               </p>
 
-              <div className="sample-dashboard-footer">
-                <span>데이터 + AI 기반 매도 분석</span>
-                <span>거래 성사를 보장하지 않습니다.</span>
+              <div className="sample-dashboard-reason">
+                <strong>현재 우선 검토할 방향</strong>
+                <span>가격 조정보다 다른 조건 먼저 점검</span>
+              </div>
+            </div>
+
+            <div className="sample-dashboard-price-grid">
+              <div className="sample-dashboard-price-card sample-dashboard-trade">
+                <span>▥ 가격 위치</span>
+                <strong>{samplePrices.pricePosition}</strong>
+                <p>최근 비교 실거래 기준</p>
               </div>
 
-            </div>              
-          )}
+              <div className="sample-dashboard-price-card sample-dashboard-listing">
+                <span>◇ 매도 기간</span>
+                <strong>{samplePrices.listedDays}</strong>
+                <p>매물 등록 후 경과 기간</p>
+              </div>
 
+              <div className="sample-dashboard-price-card sample-dashboard-asking">
+                <span>◎ 시장 유동성</span>
+                <strong>{samplePrices.marketLiquidity}</strong>
+                <p>동일 면적 거래 흐름 기준</p>
+              </div>
+            </div>
 
-        </div>
+            <button
+              type="button"
+              className="sample-dashboard-toggle"
+              aria-expanded={showSampleDetails}
+              onClick={() => {
+                setShowSampleDetails((prev) => !prev);
 
+                if (!showSampleDetails) {
+                  trackGa4Event("sample_report_expand");
+                }
+              }}
+            >
+              {showSampleDetails
+                ? "판단 근거와 지금 할 일 접기 ↑"
+                : "판단 근거와 지금 할 일 보기 ↓"}
+            </button>
 
-        <div className="sample-report-notice">
-          <span className="sample-report-notice-icon" aria-hidden="true">
-            +
-          </span>
+            {showSampleDetails && (
+              <div className="sample-dashboard-details">
+                <section className="sample-dashboard-panel">
+                  <div className="sample-dashboard-section-title">
+                    <strong>▥ 핵심 근거 3가지</strong>
+                    <span>
+                      현재 판단에 사용한 정보를 구분합니다.
+                    </span>
+                  </div>
 
-          <div className="sample-report-notice-content">
-            <span className="sample-report-notice-label">
-              샘플 리포트 안내
-            </span>
+                  <div className="sample-dashboard-evidence-grid">
+                    {sampleEvidence.map((item, index) => (
+                      <div
+                        className="sample-dashboard-evidence-card"
+                        key={item.label}
+                      >
+                        <div className="sample-dashboard-card-heading">
+                          <span>{index + 1}</span>
+                          <strong>{item.label}</strong>
+                        </div>
 
-            <strong className="sample-report-notice-title">
-              실제 리포트는 상세 분석 6페이지가 더 제공됩니다.
-            </strong>
+                        <h3>{item.title}</h3>
+                        <p>{item.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
 
-            <p>
-              현재 화면은 첫 페이지의 구성 예시입니다.
-              실제 구매 시 가격·시장 해석, 거래 유동성,
-              매수 반응과 병목 진단, 가격 전략과 실행 계획 등을
-              추가로 확인할 수 있습니다.
-            </p>
+                <section className="sample-dashboard-panel sample-dashboard-cause-panel">
+                  <div className="sample-dashboard-section-title">
+                    <strong>◎ 함께 점검할 조건</strong>
+                    <span>
+                      가격 외에 확인할 조건을 구분합니다.
+                    </span>
+                  </div>
 
-            <span className="sample-report-notice-pages">
-              현재 리포트 구성 기준 · 총 7페이지
-            </span>
+                  <div className="sample-dashboard-cause-list">
+                    {sampleCauses.map((item, index) => (
+                      <div
+                        className="sample-dashboard-cause-row"
+                        key={item.label}
+                      >
+                        <span className="sample-dashboard-number">
+                          {index + 1}
+                        </span>
+
+                        <div>
+                          <div className="sample-dashboard-cause-heading">
+                            <strong>{item.label}</strong>
+                            <span>{item.title}</span>
+                          </div>
+
+                          <p>{item.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="sample-dashboard-panel sample-dashboard-action-panel">
+                  <div className="sample-dashboard-section-title">
+                    <strong>▤ 지금 할 일</strong>
+                    <span>
+                      다음 판단을 위해 먼저 확인할 행동입니다.
+                    </span>
+                  </div>
+
+                  <div className="sample-dashboard-action-grid">
+                    {sampleActions.map((action, index) => (
+                      <div
+                        className="sample-dashboard-action-card"
+                        key={action}
+                      >
+                        <span className="sample-dashboard-number">
+                          {index + 1}
+                        </span>
+
+                        <strong>{action}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <p className="sample-dashboard-disclaimer">
+                  설명용 입력값으로 만든 판단 예시 · 현재 시세 또는
+                  실제 매물 진단 결과가 아닙니다.
+                </p>
+
+                <div className="sample-dashboard-footer">
+                  <span>데이터 기반 매도 판단</span>
+                  <span>거래 성사를 보장하지 않습니다.</span>
+                </div>
+              </div>
+            )}
           </div>
-        </div>      
+
+          <div className="sample-report-notice">
+            <span
+              className="sample-report-notice-icon"
+              aria-hidden="true"
+            >
+              +
+            </span>
+
+            <div className="sample-report-notice-content">
+              <span className="sample-report-notice-label">
+                다음 단계
+              </span>
+
+              <strong className="sample-report-notice-title">
+                무료 판단 후 필요하면 상세 분석으로 이어갈 수 있습니다.
+              </strong>
+
+              <p>
+                현재 판단에서 가격만으로 설명하기 어려운 경우,
+                매도 정체 원인과 가격 시나리오, 병목 분석,
+                실행 방향을 더 자세히 확인할 수 있습니다.
+              </p>
+
+              <span className="sample-report-notice-pages">
+                무료 판단 → 필요 시 상세 분석
+              </span>
+            </div>
+          </div>
         </div>
+
       </section>
 
       <section
@@ -491,9 +497,9 @@ export default function Home() {
           </p>
 
           <h2 id="sample-title">
-            왜 안 팔리는지 진단하고,
+            가격 위치부터 현재 판단,
             <br />
-            다음 행동까지 정리합니다.
+            필요하면 상세 분석까지 이어집니다.
           </h2>
         </div>
 
@@ -501,46 +507,44 @@ export default function Home() {
           <div className="sample-step-card">
             <span>1</span>
 
-            <strong>정체 원인 진단</strong>
+            <strong>가격 위치 확인</strong>
 
             <p>
-              가격·거래 유동성·노출·문의 전환·현장 조건 중
-              가장 가능성이 높은 매도 병목을 구분합니다.
+              최근 동일 면적 실거래와 현재 희망가격을 비교해
+              내 가격이 어느 위치에 있는지 먼저 확인합니다.
             </p>
           </div>
 
           <div className="sample-step-card">
             <span>2</span>
 
-            <strong>가격 전략</strong>
+            <strong>현재 매도 판단</strong>
 
             <p>
-              실거래와 경쟁 매물, 문의와 방문 흐름을
-              바탕으로 가격 유지·소폭 조정·적극 조정
-              시나리오를 비교합니다.
+              매도 기간과 문의·방문 반응을 함께 보고
+              가격 유지·조정·대기 중 현재 우선 검토할 방향을 확인합니다.
             </p>
           </div>
 
           <div className="sample-step-card">
             <span>3</span>
 
-            <strong>30일 실행 순서</strong>
+            <strong>필요하면 상세 진단</strong>
 
             <p>
-              진단 결과를 기준으로 1주차부터 4주차까지
-              확인하고 실행할 행동을 순서대로 정리합니다.
+              가격만으로 설명하기 어려운 경우
+              정체 원인과 병목, 가격 시나리오를 더 자세히 분석합니다.
             </p>
           </div>
 
           <div className="sample-step-card">
             <span>4</span>
 
-            <strong>유지·조정 판단 기준</strong>
+            <strong>30일 실행전략</strong>
 
             <p>
-              문의·방문·협상 반응이 어떻게 변할 때
-              현재 전략을 유지하고 언제 조정할지
-              판단 트리거를 제시합니다.
+              상세 진단 결과를 바탕으로
+              실행 순서와 다음 재점검 기준을 정리합니다.
             </p>
           </div>
         </div>
@@ -559,7 +563,7 @@ export default function Home() {
           <h2 id="pricing-title">
             현재 매도 상황에 맞는
             <br />
-            진단과 실행전략을 선택하세요.
+            판단과 상세 분석을 선택하세요.
           </h2>
         </div>
 
@@ -572,7 +576,7 @@ export default function Home() {
 
             <div>
               <p className="plan-name">
-                무료 가격 확인
+                무료 매도 판단
               </p>
 
               <p className="price">
@@ -580,14 +584,17 @@ export default function Home() {
               </p>
 
               <p className="price-note">
-                단지 한 곳 · 전용면적 한 유형 기준
+                가격 확인부터 현재 판단까지
               </p>
             </div>
 
             <ul>
               <li>최근 동일 면적 실거래 확인</li>
-              <li>현재 희망가격과의 차이 확인</li>
-              <li>내 희망가격의 현재 위치 간단 확인</li>
+              <li>현재 희망가격 위치 확인</li>
+              <li>매도 기간·문의·방문 반응 확인</li>
+              <li>현재 유지·조정·대기 판단</li>
+              <li>핵심 판단 근거 3가지</li>
+              <li>지금 할 일 확인</li>
             </ul>
 
             <a
@@ -597,7 +604,7 @@ export default function Home() {
                 trackGa4Event("free_price_check_product_click")
               }
             >
-              무료로 가격 확인하기
+              무료로 현재 판단 확인하기
             </a>
           </div>
 
@@ -612,7 +619,7 @@ export default function Home() {
 
             <div>
               <p className="plan-name">
-                매도 정체 진단
+                매도 상세 진단
               </p>
 
               <p className="price">
@@ -641,7 +648,7 @@ export default function Home() {
                 trackGa4Event("diagnosis_product_click")
               }
             >
-              매도 정체 진단 시작하기
+              매도 상세 진단 시작하기
             </a>
           </div>
 
