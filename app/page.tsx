@@ -619,7 +619,7 @@ export default function Home() {
 
             <div>
               <p className="plan-name">
-                매도 상세 진단
+                상세 정체 진단
               </p>
 
               <p className="price">
@@ -648,7 +648,7 @@ export default function Home() {
                 trackGa4Event("diagnosis_product_click")
               }
             >
-              매도 상세 진단 시작하기
+              상세 정체 진단 시작하기
             </a>
           </div>
 
