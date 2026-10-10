@@ -8,9 +8,8 @@ import {
 } from "../../../lib/payment-security";
 
 const PRODUCT_PRICES = {
-  "price-check": 2900,
-  "stagnation-diagnosis": 9900,
-  "execution-strategy": 14500,
+  "stagnation-diagnosis": 3900,
+  "execution-strategy": 4900,
 } as const;
 
 type ProductId =

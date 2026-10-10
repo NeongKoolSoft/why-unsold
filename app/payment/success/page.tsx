@@ -49,11 +49,12 @@ type GtagFunction = (
   params?: Record<string, unknown>
 ) => void;
 
-const REPORT_PRICE = 9900;
+const REPORT_PRICE = 3900;
 
 const VALID_REPORT_AMOUNTS = new Set([
-  9900,  // 현재 매도 정체 진단 가격
-  20000, // 가격 변경 전 주문 호환
+  3900,  // 현재 매도 정체 진단 가격
+  9900,  // 이전 가격 주문 호환
+  20000, // 더 이전 가격 주문 호환
 ]);
 
 function getGtag(): GtagFunction | null {

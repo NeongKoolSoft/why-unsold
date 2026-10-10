@@ -859,7 +859,7 @@ export default function DecisionForm({
                       result.decision,
                     confidence:
                       result.confidence,
-                    value: 9900,
+                    value: 3900,
                   }
                 )
               }
@@ -880,7 +880,7 @@ export default function DecisionForm({
               }}
             >
               정체 원인 자세히
-              분석하기 · 9,900원 →
+              분석하기 · 3,900원 →
             </a>
           </div>
         </section>

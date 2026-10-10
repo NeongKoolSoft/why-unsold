@@ -245,22 +245,24 @@ export async function POST(
     );
   }
 
-  /*
-   * 주문 토큰에 기록된 금액을 검증 기준으로 사용합니다.
-   *
-   * 새 가격: 14,500원
-   * 기존 가격: 19,900원
-   *
-   * 기존 가격은 가격 변경 전에 발급된
-   * 유효한 주문의 결제 확인을 위해 허용합니다.
-   */
+/*
+ * 주문 토큰에 기록된 금액을 검증 기준으로 사용합니다.
+ *
+ * 현재 가격: 4,900원
+ * 이전 가격: 14,500원
+ * 더 이전 가격: 19,900원
+ *
+ * 이전 가격은 가격 변경 전에 발급된
+ * 유효한 주문의 결제 확인을 위해 허용합니다.
+ */
   const expectedAmount =
     verifiedOrder.amount;
 
   if (
-    expectedAmount !==
-      EXECUTION_STRATEGY_PRODUCT.price &&
-    expectedAmount !== 19900
+      expectedAmount !==
+        EXECUTION_STRATEGY_PRODUCT.price &&
+      expectedAmount !== 14500 &&
+      expectedAmount !== 19900
   ) {
     return jsonError(
       "실행전략 주문 금액이 올바르지 않습니다.",

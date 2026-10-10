@@ -623,7 +623,7 @@ export default function Home() {
               </p>
 
               <p className="price">
-                <strong>9,900</strong>원
+                <strong>3,900</strong>원
               </p>
 
               <p className="price-note">
@@ -666,7 +666,7 @@ export default function Home() {
               </p>
 
               <p className="price">
-                <strong>14,500</strong>원
+                <strong>4,900</strong>원
               </p>
 
               <p className="price-note">
